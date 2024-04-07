@@ -3,8 +3,6 @@
 #include "space.h"
 #include "boolean.h"
 
-#define MAX 6
-
 int count = 0;
 int nbl = 4;
 int nbc = 8;
@@ -13,12 +11,9 @@ void appendspace( int a, int V[] , listspace *lsp )
 { listspace aux;
   aux = calloc( 1, sizeof(enrspace) );
   aux->p = a;
-  aux->V[0] = V[0];
-  aux->V[1] = V[1];
-  aux->V[2] = V[2];
-  aux->V[3] = V[3];
-  aux->V[4] = V[4];
-  aux->V[5] = V[5];
+  int i;
+  for( i = 0; i < MAX; i++ )
+  	aux->V[i] = V[i];
   aux->next = *lsp;
 
   int v = 0;

@@ -21,10 +21,13 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 all : normal.exe 
 
 
-normal.exe :  space.o normal.c
+normal.exe :  space.o option.o normal.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 
+
+option.o  : option.c
+	gcc  $(CFLAGS)  $^ -c 
 
 space.o  : space.c
 	gcc  $(CFLAGS)  $^ -c 

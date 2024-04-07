@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "space.h"
+#include "option.h"
 
 listspace lsp = NULL;
 listspace lsh = NULL;
@@ -10,101 +11,101 @@ listspace lsh = NULL;
 #define TAILLE 4294967296LU
 #define NA 16
 
-char * trace;
+char *trace;
 
-int subrelativeDegree( int r, boole f )
-{ listspace tmp = lsp;
- 
-  int res = r;
-  int ff = ffdimen;
-  initboole( r );
 
-  boole g = getboole( );
-  while ( tmp   ){
-	  int t;
-	  for( t = 0; t < 64; t++ )
-		if ( (tmp->p & t) == 0 ) {
-	  	int v = 0;
-		int a = t;
-		int iter = 1;
-  		int limite  = 1 << r;
-		g[ 0 ] = f[ a ];
-		while ( iter < limite ) {
-		    int i = __builtin_ctz( iter );
-                    a ^= tmp->V[ i ];
-		    v ^= 1 << i;
-        	    g[v] = f[a];
-		    iter++;
-		}
-		int d = degree( g );
-		if ( d < res ) 
-			res = d;
-  	   }
-	  tmp = tmp->next;
-  }
-  free( g );
-  initboole( ff );
-
-  return res;
-}
-
-int booledeg( boole f, int size )
+int booledeg(boole f, int size)
 {
-	int res = 0;
-  int wt;
-	xform( f, size );
-	int u;
-	for( u = 0; u < size; u++ )
-		if ( f[u] ) {
-		wt  = __builtin_popcount( u );
-		if ( wt >  res  ) res = wt;
+    int res = 0;
+    int wt;
+    xform(f, size);
+    int u;
+    for (u = 0; u < size; u++)
+	if (f[u]) {
+	    wt = __builtin_popcount(u);
+	    if (wt > res)
+		res = wt;
 	}
-	xform( f, size );
-   return res;
+    xform(f, size);
+    return res;
 }
 
-size_t key( boole f, int size )
-{ size_t res;
-  int v;
-  for( v = 0; v < size; v++ )
-	  res ^=   (size_t) f[v]  << v;
-  return res;
-}
+int plainRelative(int r, boole f)
+{
+    listspace tmp = lsp;
 
-int relativeDegree( int r, boole f )
-{ listspace tmp = lsh;
- 
-  int res = r;
+    int res = r;
 
-   boole g = getboole( );
-  while ( tmp   ){
-	  int t;
-	  for( t = 0; t < ffsize; t++ )
-		if ( (tmp->p & t) == 0 ) {
-	  	int v = 0;
+    boole g = getboole();
+    int limite = 1 << r;
+    int size = ffsize / limite;
+    while (tmp) {
+	int t;
+	for (t = 0; t < size; t++)
+	    if ((tmp->p & t) == 0) {
+		int v = 0;
 		int a = t;
 		int iter = 1;
-  		int limite  = 1 << (ffsize/2);
-		g[ 0 ] = f[ a ];
-		while ( iter < limite ) {
-		    int i = __builtin_ctz( iter );
-                    a ^= tmp->V[ i ];
+		g[0] = f[a];
+		while (iter < limite) {
+		    int i = __builtin_ctz(iter);
+		    a ^= tmp->V[i];
 		    v ^= 1 << i;
-        	    g[v] = f[ a ];
+		    g[v] = f[a];
 		    iter++;
 		}
-		size_t pos = key( g, ffsize / 2 );
-		if (  trace[pos] == NA ) {
-			trace[pos] = booledeg( g , ffsize /2 );
-		if ( trace[pos] < res ) 
-			res = trace[pos];
-		}
-  	   }
-	  tmp = tmp->next;
-  }
-  free( g );
+		int d = booledeg(g, limite);
+		if (d < res)
+		    res = d;
+	    }
+	tmp = tmp->next;
+    }
+    free(g);
 
-  return res;
+    return res;
+}
+
+size_t key(boole f, int size)
+{
+    size_t res;
+    int v;
+    for (v = 0; v < size; v++)
+	res ^= (size_t) f[v] << v;
+    return res;
+}
+
+int relativeDegree(int r, boole f)
+{
+    listspace tmp = lsh;
+
+    int res = r;
+
+    boole g = getboole();
+    while (tmp) {
+	int t;
+	for (t = 0; t < ffsize; t++)
+	    if ((tmp->p & t) == 0) {
+		int v = 0;
+		int a = t;
+		int iter = 1;
+		int limite = 1 << (ffsize / 2);
+		g[0] = f[a];
+		while (iter < limite) {
+		    int i = __builtin_ctz(iter);
+		    a ^= tmp->V[i];
+		    v ^= 1 << i;
+		    g[v] = f[a];
+		    iter++;
+		}
+		int d = booledeg(g, ffsize / 2);
+		if (d < res)
+		    res = d;
+	    }
+	tmp = tmp->next;
+    }
+    free(g);
+
+    return res;
 }
 
 int main(int argc, char *argv[])
@@ -112,39 +113,53 @@ int main(int argc, char *argv[])
 
     boole f;
     //FILE * src = fopen( "data/baby-1-6-6.dat", "r" );
-    int dim =  atoi( argv[1] );
-    int r = atoi( argv[2] );
-    FILE * src = fopen( argv[3], "r" );
-    int num = 0;
-    initboole( dim  );
-    int DR[ 7 ] = { -2, -2, -2, -2,-2, -2, -2 };
 
-    lsp = spaces(  r , ffdimen - 1 );
-    lsh = spaces(  ffdimen-1 , ffdimen  );
+    option(argc, argv);
+
+    int num = 0;
+
+    int DR[8] = { -2, -2, -2, -2, -2, -2, -2, -2 };
+    boole SP[8] = { NULL };
+
+    int r = tour;
+
+    lsp = spaces(r, ffdimen);
+    lsh = spaces(ffdimen - 1, ffdimen);
 
     size_t x;
-    trace = calloc( TAILLE, 1 );
-    for( x = 0; x < TAILLE; x++ )
-	    trace[x] = NA; 
-
+    /*
+     * trace = calloc( TAILLE, 1 );
+     for( x = 0; x < TAILLE; x++ )
+     trace[x] = NA; 
+     */
+    int score = 0;
     while ((f = loadBoole(src))) {
-	int k  = degree( f );
-	if (  DR[k] < k ) {
-		int dr = relativeDegree( r, f ); 
-		if ( dr > DR[ k ] ) {
-			DR[ k ] = dr;
-			int d;
-			for( d = 0; d <= ffdimen; d++ )
-				printf("%3d", DR[ d ]  );
-			panf( stdout, f );
-			printf("\n");
-			
+	if (job == num % mode) {
+	    int k = degree(f);
+	    int dr = k;
+	    if (DR[k] < k)
+		dr = plainRelative(k, f);
+	    if (DR[k] < dr) {
+		DR[k] = dr;
+		if ( SP[ k ] ) free( SP[k] );
+		SP[k] = getboolecpy( f );
 		}
-        }
+	}
 	free(f);
 	num++;
     }
+    printf("\n#boole : %d\n", num);
+    int d;
+    for (d = 1; d <= ffdimen; d++)
+	printf("%3d :", DR[d]);
+    printf("\n");
 
-    printf("\n#boole : %d\n", num );
+    if ( verbe ) 
+	for( d = 1; d <= ffdimen; d++ )
+	    if ( SP[d] ) {
+	   		printf("\n#sample : k=%d dr=%d", d , DR[d] );
+			panf( stdout, SP[d] );
+		        printf("\n");
+	    }
     return 0;
 }
