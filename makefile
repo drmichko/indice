@@ -18,18 +18,24 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : normal.exe 
+all : normal.exe restrict.exe
 
 
 normal.exe :  space.o option.o normal.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 
+restrict.exe :  degrees.o space.o option.o restrict.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
+
 
 option.o  : option.c
 	gcc  $(CFLAGS)  $^ -c 
 
 space.o  : space.c
+	gcc  $(CFLAGS)  $^ -c 
+
+degrees.o  : degrees.c
 	gcc  $(CFLAGS)  $^ -c 
 
 lib :

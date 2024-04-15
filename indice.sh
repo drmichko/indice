@@ -1,10 +1,11 @@
 dim=$1
 spc=$2
 file=$3
-mode=40
+mode=$4
 
-for j in {0..39} ; do
-	./normal.exe -t$spc   -D$1 -m40 -j$j   -f $file > /tmp/norm-$$-$j.txt &  
+
+for (( j  = 0; j < $mode; j++ )) ; do
+	./normal.exe -t$spc   -D$1 -m$mode -j$j   -f $file -v > /tmp/norm-$$-$j.txt &  
 done
 
 wait

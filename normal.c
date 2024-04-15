@@ -30,7 +30,31 @@ int booledeg(boole f, int size)
     return res;
 }
 
-int plainRelative(int r, boole f)
+int plainRelative( int r, boole f )
+{
+    listspace tmp = lsh;
+
+    int res = r;
+    boole g = getboole();
+
+    int limite = 1 << r;
+
+    while ( tmp && res > 0 ) {
+         int v;
+         for( v = 0; v < limite;  v++ )
+                 g[v] = f[ tmp->sp[v] ];
+         int d = booledeg(g, limite);
+         if ( d < res)
+                    res = d;
+         tmp = tmp->next;
+    }
+    free(g);
+
+    return res;
+}
+
+
+int oldplainRelative(int r, boole f)
 {
     listspace tmp = lsp;
 
@@ -74,6 +98,7 @@ size_t key(boole f, int size)
     return res;
 }
 
+
 int relativeDegree(int r, boole f)
 {
     listspace tmp = lsh;
@@ -81,7 +106,7 @@ int relativeDegree(int r, boole f)
     int res = r;
 
     boole g = getboole();
-    while (tmp) {
+    while ( tmp && res >= 0 ) {
 	int t;
 	for (t = 0; t < ffsize; t++)
 	    if ((tmp->p & t) == 0) {

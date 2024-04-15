@@ -6,9 +6,11 @@ int tour  = 0;
 int idt   = -1;
 int iter  = 0;
 int job   = 0;
-int mode  = 0;
+int mode  = 1;
 int verbe = 0;
-int TT    = 0;
+int optT  = 0;
+int optR  = 0;
+int optK  = 0;
 int dimen = 8;
 FILE* src = NULL;
 FILE* dst = NULL;
@@ -18,7 +20,7 @@ int option(int argc, char *argv[])
 
     initboole( 8 );
     int opt;
-    while ((opt = getopt(argc, argv, "d:i:j:m:n:vt:r:f:iD:RT")) != -1) {
+    while ((opt = getopt(argc, argv, "d:i:j:m:n:vt:r:f:iD:R:T:K:")) != -1) {
         switch (opt) {
         case 'i':
             iter = atoi(optarg);
@@ -33,11 +35,14 @@ int option(int argc, char *argv[])
         case 'm':
             mode = atoi(optarg);
             break;
+        case 'K':
+            optK  = atoi(optarg);
+            break;
         case 'T':
-            TT = 1;
+            optT  = atoi(optarg);
             break;
         case 'R':
-            srandom(time(NULL) + getpid());
+            optR = atoi( optarg );
             break;
         case 'r':
             optr = atoi(optarg);
