@@ -19,6 +19,7 @@ void appendspace( int a, int V[] , listspace *lsp )
   int v = 0;
   int iter = 1;
   int limite  = 1 << nbl;
+  aux->sp[ 0 ] =  a;;
   while ( iter < limite ) {
                     int i = __builtin_ctz( iter );
                     a ^= aux->V[ i ];

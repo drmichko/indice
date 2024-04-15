@@ -25,7 +25,7 @@ int test(boole a)
 void pxxx( FILE*dst, boole f)
 {
 int x,y,i,p;
-char aux[ ffsize ];
+unsigned char aux[ ffsize ];
 for( x = 0; x < ffsize; x++ )
         aux[x] = f[x];
 
@@ -48,6 +48,29 @@ for( x = 1; x < ffsize ; x++)
         }
 }
 
+        
+boole myloadBoole(FILE *src ) 
+//-get the current boolean function
+{ boole res = NULL;
+  char line[1024];
+  while (! feof (src) )
+    {
+      line[0] = '\0';
+      fgets (line, 1024, src);
+      printf("%s", line );
+      switch (*line)
+        {
+        case '#':
+          break;
+        case 'a' :
+          res =  strtoboole ( line );
+          return res;
+          break;
+        default:;
+        }
+    }
+    return NULL;
+}
 
 int main(int argc, char *argv[])
 {
@@ -68,11 +91,14 @@ int main(int argc, char *argv[])
     int k, r;
     
  
-    while ((f = loadBoole(src))) {
+    while ((f = myloadBoole(src))) {
 	if (  job == num % mode) {
 	    k = degree( f );
 	    if ( optK == 0 || k == optK ){
 	    	r =  restriction( f );
+		if ( verbe ) {
+		        printf("\nDR=%d\n", r );	
+		}
 	    	R[ r + 1   ]++; 
 		if ( ! B[ r + 1] )
 			B[ r + 1 ] = getboolecpy( f ); 
@@ -90,10 +116,11 @@ int main(int argc, char *argv[])
     printf("\n\nsamples:");
     for( k = 0; k <  ffdimen; k++ )
 	    if ( B[ k ] ){
-		    pxxx( stdout, B[ k ] );
+		    panf( stdout, B[ k ] );
 		    printf(" as rd = %d", k - 1 );
 	    }
     printf("\n\n");
+    r = -1;
     for( k = 0; k <  ffdimen; k++ )
 	    if ( R[ k ] ) 
 		    r = k - 1;

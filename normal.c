@@ -151,13 +151,6 @@ int main(int argc, char *argv[])
     lsp = spaces(r, ffdimen);
     lsh = spaces(ffdimen - 1, ffdimen);
 
-    size_t x;
-    /*
-     * trace = calloc( TAILLE, 1 );
-     for( x = 0; x < TAILLE; x++ )
-     trace[x] = NA; 
-     */
-    int score = 0;
     while ((f = loadBoole(src))) {
 	if (job == num % mode) {
 	    int k = degree(f);

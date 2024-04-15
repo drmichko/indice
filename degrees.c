@@ -11,7 +11,7 @@ listspace lsh = NULL;
 #define NA 16
 
 
-int threshold  = 3;
+int threshold  = -1;
 int subdim     = 0;
 void initdegrees( int thres, int r)
 {
@@ -45,7 +45,7 @@ int restriction( boole f )
     
     int limite = 1 << subdim;
 
-    while ( tmp && res > threshold   ) {
+    while ( tmp &&  ( res > threshold)   ) {
 	 int v;
 	 for( v = 0; v < limite;  v++ )
 		 g[v] = f[ tmp->sp[v] ];
