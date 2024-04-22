@@ -39,7 +39,7 @@ degrees.o  : degrees.c
 	gcc  $(CFLAGS)  $^ -c 
 
 lib :
-	make -BC ../src
+	make -BC ../boole/src
 	make -B
 clean :
 	rm -f *.exe
