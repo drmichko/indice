@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     int k, r;
     
  
-    while ((f = myloadBoole(src))) {
+    while ((f = loadBoole(src))) {
 	if (  job == num % mode) {
 	    k = degree( f );
 	    if ( optK == 0 || k == optK ){
@@ -107,12 +107,12 @@ int main(int argc, char *argv[])
 	free(f);
 	num++;
     }
-    printf("\n#boole of degree %d (r=%d) : %d\n", optK, optR, num);
+    printf("\n#boole of degree %d (r=%d) : %d\n!", optK, optR, num);
     for( k = 0; k <  ffdimen; k++ )
-	    printf(" %8d", k - 1 );
-    printf("\n");
+	    printf(" %8d :", k - 1 );
+    printf("\n!");
     for( k = 0; k <  ffdimen; k++ )
-	    printf(" %8d", R[ k ] );
+	    printf(" %8d :", R[ k ] );
     printf("\n\nsamples:");
     for( k = 0; k <  ffdimen; k++ )
 	    if ( B[ k ] ){
