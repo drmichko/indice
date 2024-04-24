@@ -14,16 +14,23 @@ ifeq ($(shell hostname),port-gillot)
 	OPTION = -Wall -g
 endif
 
+	OPTION = -Wall -g
 CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : normal.exe restrict.exe
+all : idemp.exe search.exe normal.exe restrict.exe
 
 
 normal.exe :  space.o option.o normal.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
+
+search.exe :  space.o option.o search.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
+
+idemp.exe :  space.o option.o idemp.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 restrict.exe :  degrees.o space.o option.o restrict.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
@@ -39,7 +46,7 @@ degrees.o  : degrees.c
 	gcc  $(CFLAGS)  $^ -c 
 
 lib :
-	make -BC ../boole/src
+	make -BC ../src
 	make -B
 clean :
 	rm -f *.exe

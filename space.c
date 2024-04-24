@@ -82,8 +82,7 @@ listspace spaces(  int l, int c )
     int *A = calloc(nbc, sizeof(int));
     int P = 0;
     echelon(P, A, 0, 0,  &lz);
-    printf("\n#number of %d-spaces (%d) : %d\n", l, c , count );
- 
+    printf("\n#number of [%d,%d]-spaces : %d\n", l, c , count );
     return lz;
 
 }

@@ -6,6 +6,37 @@
 #include "option.h"
 #include "degrees.h"
 
+int rotation( int x )
+{ int res= x, y = x;
+  do {
+	 y = y << 1;
+	 if ( y >= ffsize )
+		y^= ffsize + 1;
+  } while ( x != y );
+return res;
+}
+
+void rotatest( boole f  ) 
+{ 
+int x, y, cpt = 0, i ;
+printf("\nrotation :");
+ANFtoTT( f );
+for( x = 0; x < ffsize; x++ )
+   if ( f[x] )  {
+	y = x  << 1;
+	if ( y >= ffsize )
+                y^= ffsize + 1;
+	if ( ! f[y] ) {
+		printf("\nu : ");
+		for( i = 0; i < 8; i++ )
+			if ( x & (1<<i) ) printf(" %d", i+1 );
+		printf(" -> ");
+		for( i = 0; i < 8; i++ )
+			if ( y & (1<<i) ) printf(" %d", i+1 );
+	}
+}
+ANFtoTT( f );
+}
 
 int test(boole a)
 {
@@ -92,6 +123,7 @@ int main(int argc, char *argv[])
     
  
     while ((f = loadBoole(src))) {
+	    rotatest( f );
 	if (  job == num % mode) {
 	    k = degree( f );
 	    if ( optK == 0 || k == optK ){
@@ -117,6 +149,8 @@ int main(int argc, char *argv[])
     for( k = 0; k <  ffdimen; k++ )
 	    if ( B[ k ] ){
 		    panf( stdout, B[ k ] );
+		    part( B[k] );
+
 		    printf(" as rd = %d", k - 1 );
 	    }
     printf("\n\n");
