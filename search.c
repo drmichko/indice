@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     int DR[9] = { -2, -2, -2, -2, -2, -2, -2, -2, -2 };
     boole SP[9] = { NULL };
 
-    int r = tour;
+    int r = optR;
 
     lsp = spaces(r, ffdimen);
 
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     if ( mode == 0 ) mode = 1;
     srandom( time(NULL) + getpid() ) ;
     while ( num < mode ) {
-	    f = Randboole(  );
+	    f = randboole(  );
 	    int k = degree(f);
 	    int dr = k;
 	    if ( DR[k] < k )
@@ -183,7 +183,12 @@ int main(int argc, char *argv[])
     }
     printf("\n#boole : %d\n", num);
     int d;
-    for (d = 1; d <= ffdimen; d++)
+    printf("----");
+    for (d = 0; d <= ffdimen; d++)
+	printf("%3d :", d );
+    printf("\n");
+    printf("%2d !", optR );
+    for (d = 0; d <= ffdimen; d++)
 	printf("%3d :", DR[d]);
     printf("\n");
 
