@@ -4,31 +4,15 @@
 #include <time.h>
 #include "space.h"
 #include "option.h"
+#include "degrees.h"
 
 listspace lsp = NULL;
-listspace lsh = NULL;
 
 #define TAILLE 4294967296LU
 #define NA 16
 
 char *trace;
 
-
-int booledeg(boole f, int size)
-{
-    int res = 0;
-    int wt;
-    xform(f, size);
-    int u;
-    for (u = 0; u < size; u++)
-	if (f[u]) {
-	    wt = __builtin_popcount(u);
-	    if (wt > res)
-		res = wt;
-	}
-    xform(f, size);
-    return res;
-}
 
 int plainRelative(int r, boole f)
 {
@@ -73,7 +57,7 @@ size_t key(boole f, int size)
 	res ^= (size_t) f[v] << v;
     return res;
 }
-
+/*
 int relativeDegree(int r, boole f)
 {
     listspace tmp = lsh;
@@ -107,13 +91,16 @@ int relativeDegree(int r, boole f)
 
     return res;
 }
-
-boole randboole( )
+*/
+boole randboole( int d )
 {
-boole r = getboole();
+boole r = getboole(  d );
 int x;
 for( x = 0; x < ffsize; x++ )
-	r[x] = random() & 1;
+	if ( weight(x) <= d ) 
+		r[ x ] = random() & 1;
+
+ANFtoTT( r );
 return r;
 }
 
@@ -148,29 +135,21 @@ int main(int argc, char *argv[])
     int DR[9] = { -2, -2, -2, -2, -2, -2, -2, -2, -2 };
     boole SP[9] = { NULL };
 
-    int r = optR;
+    
+    initdegrees( optT, optR );
 
-    lsp = spaces(r, ffdimen);
-
-    lsh = spaces(ffdimen - 1, ffdimen);
-
-    size_t x;
-    /*
-     * trace = calloc( TAILLE, 1 );
-     for( x = 0; x < TAILLE; x++ )
-     trace[x] = NA; 
-     */
-    int score = 0;
+    
     if ( mode == 0 ) mode = 1;
     srandom( time(NULL) + getpid() ) ;
+    if ( ! optK ) optK = ffdimen;
+
     while ( num < mode ) {
-	    f = randboole(  );
-	    int k = degree(f);
+	    f = randboole(  optK  );
+	    int k = degree( f );
 	    int dr = k;
-	    if ( DR[k] < k )
-		dr = plainRelative( k, f);
-	    if (DR[k] < dr) {
-		DR[k] = dr;
+	    dr = restriction( f );
+	    if ( DR[ k ] < dr) {
+		DR[ k ] = dr;
 		if ( SP[ k ] ) free( SP[k] );
 		SP[k] = getboolecpy( f );
 		if ( verbe ){
@@ -181,7 +160,6 @@ int main(int argc, char *argv[])
 	free(f);
 	num++;
     }
-    printf("\n#boole : %d\n", num);
     int d;
     printf("----");
     for (d = 0; d <= ffdimen; d++)
@@ -192,12 +170,21 @@ int main(int argc, char *argv[])
 	printf("%3d :", DR[d]);
     printf("\n");
 
-    if ( verbe ) 
-	for( d = 1; d <= ffdimen; d++ )
+    FILE *save;
+    char fn[32];
+    sprintf( fn, "rand/line-%d-%d-%d.txt", optR, job, ffdimen );
+
+    save = fopen( fn, "a" ); 
+    fprintf( save, "%2d !", optR );
+    for (d = 0; d <= ffdimen; d++)
+        fprintf( save, "%3d :", DR[d]);
+
+    for( d = 1; d <= ffdimen; d++ )
 	    if ( SP[d] ) {
-	   		printf("\n#sample : k=%d dr=%d", d , DR[d] );
-			panf( stdout, SP[d] );
-		        printf("\n");
+	   		fprintf(save, "\n#sample : k=%d dr=%d", d , DR[d] );
+			panf( save, SP[d] );
+		        fprintf(save, "\n");
 	    }
+    fclose( save );
     return 0;
 }

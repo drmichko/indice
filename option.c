@@ -11,6 +11,7 @@ int verbe = 0;
 int optT  = 0;
 int optR  = 0;
 int optK  = 0;
+int optX  = 0;
 int dimen = 8;
 FILE* src = NULL;
 FILE* dst = NULL;
@@ -20,13 +21,16 @@ int option(int argc, char *argv[])
 
     initboole( 8 );
     int opt;
-    while ((opt = getopt(argc, argv, "d:i:j:m:n:vt:r:f:iD:R:T:K:")) != -1) {
+    while ((opt = getopt(argc, argv, "d:i:j:m:n:vt:r:f:iD:R:T:K:X:")) != -1) {
         switch (opt) {
         case 'i':
             iter = atoi(optarg);
             break;
         case 'j':
             job = atoi(optarg);
+            break;
+        case 'X':
+	    optX = atoi(optarg);
             break;
         case 'D':
 	    dimen = atoi(optarg);

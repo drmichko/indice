@@ -16,15 +16,16 @@ void appendspace( int a, int V[] , listspace *lsp )
   	aux->V[i] = V[i];
   aux->next = *lsp;
 
-  int v = 0;
+  int v = 0, x = 0 ;
   int iter = 1;
   int limite  = 1 << nbl;
-  aux->sp[ 0 ] =  a;;
+  aux->sp[ 0 ] =  0;
+  aux->a =  a;
   while ( iter < limite ) {
                     int i = __builtin_ctz( iter );
-                    a ^= aux->V[ i ];
-                    v ^= 1 << i;
-                    aux->sp[v] =  a;
+                    v  ^= aux->V[ i ];
+                    x ^= 1 << i;
+                    aux->sp[ x ] =  v;
                     iter++;
                 }
 
@@ -34,7 +35,7 @@ void appendspace( int a, int V[] , listspace *lsp )
 
 
 
-void echelon( int P, int *A, int l, int c, listspace *lsp )
+void echelon( int P, int *A, int l, int c, listspace *lsp, int affine )
 {
     int x;
     int V[ MAX ]={0};
@@ -45,21 +46,25 @@ void echelon( int P, int *A, int l, int c, listspace *lsp )
 		    for( j = 0; j < nbc; j++ )
 			    if ( A[j] & (1<<i) ) V[i] ^= 1 << j;
 		int a;
-	    for ( a = 0; a < ffsize ; a++ )
+	    if ( affine  ) {
+	      for ( a = 0; a < ffsize ; a++ )
 		   if( ( a & P ) == 0 )
 			   appendspace( a ,  V  , lsp  );
+	    }
+	    else 
+		    appendspace( 0  ,  V  , lsp  );
 	}
 	return;
     }
 
     if (l < nbl) {
 	A[c] = 1 << l;
-	echelon(P + (1 << c ) , A, l + 1, c + 1, lsp);
+	echelon(P + (1 << c ) , A, l + 1, c + 1, lsp, affine);
     }
 
     for (x = 0; x < (1 << l); x++) {
 	A[c] = x;
-	echelon(P, A, l, c + 1, lsp);
+	echelon(P, A, l, c + 1, lsp, affine );
     }
     A[c] = 0;
 }
@@ -74,14 +79,14 @@ int length( listspace  lz )
 }
 
 
-listspace spaces(  int l, int c )
+listspace spaces(  int l, int c, int affine )
 {   listspace lz = NULL;
     count = 0;
     nbl = l;
     nbc = c;
     int *A = calloc(nbc, sizeof(int));
     int P = 0;
-    echelon(P, A, 0, 0,  &lz);
+    echelon(P, A, 0, 0,  &lz, affine  );
     printf("\n#number of [%d,%d]-spaces : %d\n", l, c , count );
     return lz;
 

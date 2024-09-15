@@ -4,13 +4,14 @@
 
 typedef struct listspace{
 	int  p;
-	int  V[ MAX    ];
+	int  V[  MAX   ];
 	int  sp[ 256  ];
+	int  a;
         struct listspace * next;
 } enrspace, *listspace;
 
 
 
-listspace spaces( int l, int c );
+listspace spaces( int l, int c , int affine );
 #endif
 

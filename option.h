@@ -16,6 +16,7 @@ extern  int verbe ;
 extern  int optT ;
 extern  int optR ;
 extern  int optK ;
+extern  int optX ;
 extern  FILE* src ;
 extern  FILE* dst ;
 
