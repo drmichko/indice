@@ -11,4 +11,4 @@ void initdegrees( int thres, int r);
 int booledeg(boole f, int size);
 int restriction( boole f );
 int Restriction( boole f , basis_t *base);
-
+void countspace( int c[], boole f );

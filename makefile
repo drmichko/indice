@@ -19,14 +19,20 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : sieve.exe normal.exe search.exe calc.exe hybride.exe
+all : sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
 	
-	# normal.exe restrict.exe
 
 
 sieve.exe :  degrees.o space.o option.o sieve.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
+
+rd.exe :  degrees.o space.o option.o rd.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
+
+
+sb.exe :  degrees.o space.o option.o sb.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 normal.exe :  space.o option.o normal.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
