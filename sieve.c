@@ -18,7 +18,6 @@ void bingauss( int r, int m)
 	for( k=0; k < r ; k++ )
 		cpt /= ( 1<< r  ) - ( 1<<k );
 	printf("#space=%d %d", cpt, nbspaces );
-	exit (0 );
 }
 
 int main(int argc, char *argv[])

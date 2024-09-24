@@ -81,6 +81,49 @@ void countspace( int c[], boole f )
     free(g);
 }
 
+vector mypreImage( boole g, vector V[21], code Q )
+{
+galois x, p;
+boole tmp;
+vector rho = 0;
+
+code G = copyCode( Q );
+int r  =  G.nbl;
+
+int i  =  0, j;
+while ( i < r ){
+   for( p = 0; p < G.nbc && G.fct[i][p]==0; p++ );
+   if ( p < G.nbc ) {
+       G.piv[i] = p;
+       for( j = i+1; j < r; j++ )
+          if ( G.fct[j][p] ){
+            for( x = 0; x < G.nbc ; x++ )
+                G.fct[j][x] ^=  G.fct[i][x];
+	    V[j] ^= V[i];
+	  }
+       i++;
+   } else {
+        r--;
+        tmp = G.fct[i];
+        G.fct[i] = G.fct[r];
+        G.fct[r] = tmp;
+	vector tempo = V[i];
+	V[i] = V[r];
+	V[r] = tempo;
+   }
+}
+for( i = 0; i < r; i++ )
+	if ( g[ G.piv[i] ] ) {
+		rho ^= V[ i ];
+		for( j = 0; j < G.nbc; j++ )
+			g[j] ^= G.fct[i][j] ;
+	}
+for ( j = 0; j < G.nbc && (g[j]==0) ; j++ ) ;;
+assert( j == G.nbc );
+G.nbl  =  Q.nbl;
+freecode( G );
+return rho;
+}
 
 void biftable( boole g, int  sp[] , basis_t *base, int *count )
 { 
@@ -104,19 +147,16 @@ void biftable( boole g, int  sp[] , basis_t *base, int *count )
   assert( r == 5 );  
 
   reduce( g, L );
-
+  vector V[21];
   for( k = 0; k < base->mat.nbl; k++ ) {
+	V[ k ] = booleVector( base->mat.fct[ k ] , base ) ;
         for( x = 0; x < 16; x++ )
 		Q.fct[k][x] = base->mat.fct[ k ][ sp[x] ];	
 	reduce( Q.fct[k] , L );
 
   }
-  r  = pivotage( Q );
-  vector tmp  = decompose( g ,  Q );
-  vector vec  = 0;
-  for( i = 0; i < r; i++ )
-	  if ( tmp & (1<<i) ) 
-		  vec ^= 
+  
+  vector vec = mypreImage( g, V, Q );
 
   code B = copyCode( base->mat );
   code K = kernel( B, Q ); 
