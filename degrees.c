@@ -88,11 +88,20 @@ void biftable( boole g, int  sp[] , basis_t *base, int *count )
   code L, Q;
   
   vector bp[21];
-  L = rmcode( 0, 1, 4 ); 
+  L = getcode( 8,  16 ); 
   Q = getcode( 21, 16  );
   int x, k, dim = 0;
-  x = pivotage( L );
-  
+
+  for( k = 0; k < 7; k++ )
+  	for( x = 0; x < 16; x++ )
+                L.fct[k][x] = ( sp[x]  & (1<<k) ) > 0;
+
+  for( x = 0; x < 16; x++ )
+	  	L.fct[7][x] = 1;
+
+  int r  = pivotage( L );
+
+  assert( r == 5 );  
 
   reduce( g, L );
 
@@ -102,6 +111,13 @@ void biftable( boole g, int  sp[] , basis_t *base, int *count )
 	reduce( Q.fct[k] , L );
 
   }
+  r  = pivotage( Q );
+  vector tmp  = decompose( g ,  Q );
+  vector vec  = 0;
+  for( i = 0; i < r; i++ )
+	  if ( tmp & (1<<i) ) 
+		  vec ^= 
+
   code B = copyCode( base->mat );
   code K = kernel( B, Q ); 
   freecode( L );
@@ -112,8 +128,6 @@ void biftable( boole g, int  sp[] , basis_t *base, int *count )
   for( k = 0; k < dim; k++ )
 	   bp[ k ]  = booleVector( K.fct[k], base ) ;
   freecode( K );
-
-  vector  vec = booleVector( g, base ) ;
 
   if ( ! base->table[ vec ]  ) {
 	   base->table[ vec ] = 1;
@@ -144,7 +158,7 @@ for ( v = 0; v < base->size; v++ )
 	    int x;
 	    for( x = 0; x < ffsize; x++ )
 		    g[x] ^=  f[x];
-	    panf( stdout, g );
+	    panf( dst , g );
 	    free( g );
 	}
 }
@@ -158,7 +172,7 @@ int Restriction( boole f, basis_t *base )
 
     int limite = 1 << subdim;
     int count  = 0;
-    base->table[0] = 1;
+    // base->table[0] = 1;
     while ( tmp  &&  count < 2097152  ) {
          int v;
          for( v = 0; v < limite;  v++ )
@@ -172,10 +186,10 @@ int Restriction( boole f, basis_t *base )
     }
     free(g);
     if ( verbe )
-	    printf("\n#tour=%d\n", tour );
+	    fprintf(dst, "\n#tour=%d\n", tour );
     
     if ( count < 2097152  ){ 
-	    printf("\n#candidat=%d count=%d\n", num, 2097152  - count );
+	    fprintf(dst, "\n#candidat=%d count=%d\n", num, 2097152  - count );
 	    num++;
 	    sample( f , base );
     }

@@ -10,7 +10,7 @@ typedef struct listspace{
         struct listspace * next;
 } enrspace, *listspace;
 
-
+extern int nbspaces;
 
 listspace spaces( int l, int c , int affine );
 #endif

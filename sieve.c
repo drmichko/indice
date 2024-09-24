@@ -9,7 +9,17 @@
 
 #include "basistools.h"
 
-
+void bingauss( int r, int m)
+{
+	int cpt = 1;
+	int k;
+	for( k=0; k < r ; k++ )
+		cpt *= (1 << m) - (1<<k );
+	for( k=0; k < r ; k++ )
+		cpt /= ( 1<< r  ) - ( 1<<k );
+	printf("#space=%d %d", cpt, nbspaces );
+	exit (0 );
+}
 
 int main(int argc, char *argv[])
 {
@@ -29,24 +39,36 @@ int main(int argc, char *argv[])
     
     int d;
     int cpt[4] = {0};
- 
+    int CPT[4] = {0};
+    fprintf(dst, "\n#number of [%d,%d]-spaces : %d\n", optR, ffdimen , nbspaces  );
+
+    bingauss( optR, ffdimen );  
+
     while ((f = loadBoole(src))) {
 	if (  job == num % mode) {
     		base.table = calloc(  base.size , 1 );
-
 		if ( verbe ) {
 			countspace( cpt, f );
-			printf("\n#space : ");
+			if ( verbe > 1 ) {
+				printf("\n#space : ");
+    				for( d = 0; d <= 3 ; d++ )
+	    				printf(" %d", cpt[d] );
+				printf("\n");
+			}
     			for( d = 0; d <= 3 ; d++ )
-	    			printf(" %d", cpt[d] );
-			printf("\n");
+				CPT[d]+= cpt[d];
 		}
-		Restriction( f, &base );
+		if ( optX ) 
+			Restriction( f, &base );
 		free( base.table );
 	}
 	free(f);
 	num++;
     }
-    printf("\n");
+    if ( verbe ){
+	   printf("\n#space : ");
+    	for( d = 0; d <= 3 ; d++ )
+	    	printf(" %d", CPT[d] );
+   }
     return 0;
 }

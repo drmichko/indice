@@ -4,6 +4,7 @@
 #include "boolean.h"
 
 int count = 0;
+int nbspaces = 0;
 int nbl = 4;
 int nbc = 8;
 
@@ -87,7 +88,7 @@ listspace spaces(  int l, int c, int affine )
     int *A = calloc(nbc, sizeof(int));
     int P = 0;
     echelon(P, A, 0, 0,  &lz, affine  );
-    printf("\n#number of [%d,%d]-spaces : %d\n", l, c , count );
+    nbspaces = count;
     return lz;
 
 }

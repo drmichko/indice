@@ -33,7 +33,7 @@ int booledeg(boole f, int size)
 int  plainNormality( boole f )
 {
     listspace tmp = lsp;
-    int64_t cpt0 = 0, cpt1 = 0, cpt2=0; 
+    //int64_t cpt0 = 0, cpt1 = 0, cpt2=0; 
     //int res = r;
     boole g = getboole();
 
