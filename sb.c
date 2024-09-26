@@ -25,13 +25,16 @@ int main(int argc, char *argv[])
  
     while ((f = loadBoole(src))) {
 	if (  job == num % mode) {
-	    	if ( isnearbent( f ) ) count++;
-		printf("%d\n", linearity(f) );
+	    	if ( isnearbent( f ) ) {
+			count++;
+			panf( stdout, f );
+		}
+		//printf("%d\n", linearity(f) );
 		}
 	free(f);
 	num++;
     }
-       printf("\ncount=%d / %d", count, num  ); 
+       printf("\n#count=%d / %d", count, num  ); 
     printf("\n");
     return 0;
 }
