@@ -12,3 +12,6 @@ int booledeg(boole f, int size);
 int restriction( boole f );
 int Restriction( boole f , basis_t *base);
 void countspace( int c[], boole f );
+
+int testRestriction( boole f  );
+int boolewalsh(boole f, int size);

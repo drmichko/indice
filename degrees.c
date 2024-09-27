@@ -38,6 +38,19 @@ int booledeg(boole f, int size)
     return res;
 }
 
+int boolewalsh(boole f, int size)
+{
+    int res = 0;
+    int tfr[ size ];
+    int u;
+    for (u = 0; u < size; u++)
+	tfr[u] = f[u] ? -1 : +1;
+    Fourier( tfr, size );
+    for( u = 0; u < size; u++ )
+	    if ( abs( tfr[u] ) > res )
+		    res= abs( tfr[u] );
+    return res;
+}
 int restriction( boole f )
 {
     listspace tmp = lsh;
@@ -236,3 +249,36 @@ int Restriction( boole f, basis_t *base )
     return tour;
 }
 
+
+int testRestriction( boole f  )
+{
+    int res = 0;
+    listspace tmp = lsh;
+
+    boole g = getboole();
+
+    int limite = 1 << subdim;
+    // base->table[0] = 1;
+    printf("\n\n---\n");
+    int cpt=0, sum=0, sos = 0;;
+    while ( tmp ) {
+         int v;
+         for( v = 0; v < limite;  v++ )
+                 g[v] = f[ tmp->sp[v] ^ tmp->a ];
+         int tfr =  0;
+	 for ( v = 0; v < limite; v++ )
+		 tfr   += (1 -2*g[v] );
+	 printf(" %d", tfr );
+	 sum += tfr;
+	 sos += tfr*tfr; 
+         cpt++;
+	 if ( cpt % limite ==  0 ) {
+		 printf("sum=%d sos=%d\n", sum, sos );
+		 sum=0; 
+		 sos = 0;
+	 }
+	 tmp = tmp->next;
+    }
+    free(g);
+    return 0;
+}
