@@ -348,37 +348,27 @@ void  mklist( int L[32], int H[32], vector X )
 	xorbit( x , X );
 }
 
+void pair( int a, int b, int tfr[] )
+{
+	int x, cpt = 0;
+   for( x = 0; x < 64; x++ )
+	   if ( tfr[x] == a && tfr[x] == b ) 
+		   cpt++;
+   printf("\n%4d %4d : %d\n", a, b, cpt);
+}
+
 void initlist( boole f )
 { int tfr[ 256 ];
-  int t;
+  int L[ 64 ]={0}, R[ 64 ]={0};
+  vector X = 0;
+  int x, y, t, cpt = 0;
   for( t = 0; t < ffsize; t++ )
 	  tfr[ t ] = f[ t ] ? -1 : 1 ;
    Fourier( tfr, ffsize );
-   for( t = 0; t < ffsize; t++ )
-	   tfr[ 128 + t ] = tfr[ t ];
-   int q, m[ 4 ] ={ 0 };
-   vector X[ 4 ] ={ 0 };
-   int L[ 32 ], H[32];
-
-   for( q = 0; q < 4; q++ ) { 
-	for( t = 0; t < 32; t++ )
-		if ( tfr[ q * 32 + t ] == 0  ) {
-			m[ q ]++;
-			putbit( t, X [ q ] );
-		} else {
-			L[t] = tfr[ q * 32 + t ] / 16;
-			H[t] = tfr[ q * 32 + t + 128 ] /= 16;
-		}
-   	soluce = 0;
-	result = NULL;
-        mklist(  L,  H  ,  X[q]  );
-        Soluce[ q ]  = soluce;
-	lf[ q ] = result;
-   }
-   printf("\n#blocs :");
-   for( q=0; q < 4; q++ )
-	   printf(" %5d", Soluce[q] );
-   printf("\n");
+   for( x = 0, y = 64; x < 64; x++, y++ ) {
+	   if ( tfr[x] ==0   && tfr[y] == 0 ) cpt++;
+	}
+   printf("\n0 0 : %d\n", cpt);
 }
 
 int main(int argc, char *argv[])
@@ -401,19 +391,6 @@ int main(int argc, char *argv[])
 			printf("\nnum=%d", num );
 			panf( stdout, f );
 			initlist( f );
-			list l;
-			int n;
-			l = merge( lf[0], lf[1], &n );
-			mktable( l, n );
-			freelist( lf[0] );
-			freelist( lf[1] );
-
-			mega( lf[2], lf[3] );
-
-			freetable( table, n );
-			tdestroy( rootp, free );
-			freelist( lf[2] );
-			freelist( lf[3] );
 	}
 	free( f );
 	num++;

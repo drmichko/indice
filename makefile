@@ -1,25 +1,18 @@
 SHELL=/bin/bash
 INCLUDE=-I../boole/src 
 BIBLIO=-L../boole/src
-OPTION = -O2
 
-ifeq ($(shell hostname),serveur-imath01.univ-tln.fr)
+OPTION  = -O3    -march=native   -Wno-unused-result
+
+ifeq ($(shell hostname),localhost.localdomain)
 	OPTION = -Wall -g
 endif
 
-ifeq ($(shell hostname),ou812.univ-tln.fr)
-	OPTION = -Wall -g
-endif
-ifeq ($(shell hostname),port-gillot)
-	OPTION = -Wall -g
-endif
-
-	OPTION = -Wall -g
 CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : test.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
+all : tempo.exe test.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
 	
 
 
@@ -31,6 +24,9 @@ rd.exe :  degrees.o space.o option.o rd.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 
+tempo.exe :  degrees.o space.o option.o tempo.c
+
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 test.exe :  degrees.o space.o option.o test.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 sb.exe :  degrees.o space.o option.o sb.c
