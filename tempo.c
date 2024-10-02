@@ -36,44 +36,52 @@ list* table;
 
 #define  ZZ  ( '?' )
 int EXIT = 0;
-
-void lift( int x, int tfr[]	 )
+int ok( int v )
+{
+	v  = abs( v );
+	if ( v != 0  && v != 2  ) return 0;
+	return 1;
+}
+void lift( int x, listspace l, int res[ ], int tfr[]	 )
 {
 if ( EXIT ) return; 
 if ( x == subsize  ) {
-	int f[ 128];
-	for( x = 0; x < subsize  ; x++) f[x] = tfr[x];
-	//printf("\n");for( x = 0; x < subsize ; x++) printf("%3d", f[x] );
-	Fourier( f,  subsize );
-	int y = abs( f[0] );
-	printf("\n");for( x = 0; x < subsize ; x++) printf("%3d", f[x] );
-	for( x = 0; x < subsize  && abs( f[x] ) == y ; x++);;
-	if ( x == subsize ) EXIT = 1;
+	int f[ 256  ];
+	for( x = 0; x < 256  ; x++) 
+		f[x] = res[ x ];
+	Fourier( f,  128 );
+	for( x = 0; x < 256; x++ )
+		f[x] /= subsize;
+	printf("\n");for( x = 0; x < 256 ; x++) printf("%3d", f[x] );
+	for( x = 0; x < 256  && ok( f[ x ] ) ; x++);;
+	if ( x == 256  ) EXIT = 1;
 	return;
 }
-if ( tfr[x] !=  ZZ ) 
-	lift( x+1, tfr );
+if ( tfr[ l->sp[x] ] !=  ZZ ) {
+	res[  l->sp[x]  ] = tfr[ l->sp[x] ] ;
+	lift( x+1, l, res, tfr );
+}
 else {
-    tfr[x] = +16; lift( x+1, tfr );
-    tfr[x] = -16; lift( x+1, tfr );
-    tfr[x] = ZZ;
+   res[  l->sp[x]  ] = +16 ; lift( x+1, l, res, tfr );
+   res[  l->sp[x]  ] = -16 ; lift( x+1, l, res, tfr );
+   res[  l->sp[x]  ] = 0;
 }
 
 }
 int admis( listspace l, int tfr[ 256 ]  )
 { 
-  int  res[ 128 ];
-  int t;
-  for( t = 0; t < subsize; t++ )
-	  res[ t ] = tfr[ l->sp[ t ]  ];
+  int  res[ 256 ];
   EXIT = 0;
-  lift( 0, res );
+  int t;
+  for( t = 0; t < 256 ;  t++ )
+	  res[ t ] = 0; 
+  lift( 0,  l, res, tfr  );
   return EXIT;
 }
 
 int score( listspace l, int tfr[ 256 ]  )
 { 
-  int  res[ 128 ];
+  int  res[ 256  ];
   int t;
   for( t = 0; t < subsize ; t++ )
           res[ t ] = tfr[ l->sp[t]  ];
@@ -120,14 +128,14 @@ int main(int argc, char *argv[])
     int num = 0, count = 0;
 
 
-    lsp = spaces(  6,  8,  0 );
+    lsp = spaces(  7 ,  8,  0 );
 
-    subsize = 64; 
+    subsize = 128; 
 
     while ((f = loadBoole(src))) {
 		if (  job == num % mode) {
 		      if ( test( f ) ) count++;
-    			printf("\ncount=%d / %d\n", count, num );
+    		      printf("\ncount=%d / %d\n", count, num );
 	}
 	free( f );
 	num++;
