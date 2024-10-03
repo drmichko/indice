@@ -157,14 +157,15 @@ int main(int argc, char *argv[])
 		if (  job == num % mode) {
 		      
 		      if ( test( f ) ) {
-			      panf(stdout, f );
+			      panf( stdout, f );
 			      count++;
 		      }
-    		      printf("\ni#count=%d / %d\n", count, num );
+    		      printf("\n#count=%d / %d\n", count, num );
 	}
 	free( f );
 	num++;
     }
     printf("\ncount=%d / %d\n", count, num );
+   
     return 0;
 }
