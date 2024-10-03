@@ -32,7 +32,10 @@ typedef struct list {
 list  lf[ 8 ] = {NULL}, result;
 list* table;
 
-
+int tfr[ 256 ];
+int zzz[ 256  ];
+int spc[ 256  ];
+int fct[ 256 ];
 
 #define  ZZ  ( '?' )
 int EXIT = 0;
@@ -43,98 +46,116 @@ v = abs( v );
 if ( v % subsize) return 0;
 v = v / subsize;
 if ( subsize == 128 ) 
-	return ( v == 1 );
-return ( v == 0 || v == 2  );
+	return ( v == 0 || v == 2  );
+if ( subsize == 64 )
+	return ( v == 0 || v == 2 || v == 4  );
+return ( v== 8 || v == 6  || v == 4 || v == 2  || v == 0 );
 }
 
-int good( int res[]  )
+int good(  )
 {
 	int f[ 256 ], a;
 	for( a = 0; a < 256; a++ )
-		f[ a ] = res[ a ];
+		f[ a ] = fct[ a ];
         Fourier( f, 256 );	
-	//printf("\n");for( a = 0; a < 256 ; a++) printf(" %3d", f[a] );
+	//printf("\n");for( a = 0; a < 256 ; a++) printf(" %3d", f[a]/subsize );
 	for( a = 0; a < 256  && ok( f[ a ]  ) ; a++);;
 	return ( a == 256  );
 }
 
 int trial;
 
-void lift( int x, listspace l, int res[ ], int tfr[]	 )
+void lift( int x )
 {
 
 if ( EXIT ) return; 
 
-if ( x == subsize  ) {
+if ( x == 256   ) {
 	trial++;
-	if ( good( res ) ) 
+	if ( good(  ) ) 
 		EXIT = 1;
 	return;
 }
 
-if ( tfr[ l->sp[x] ] !=  ZZ ) {
-	res[  l->sp[x]  ] = tfr[ l->sp[x] ] ;
-	lift( x+1, l, res, tfr );
-}
-else {
-   res[  l->sp[x]  ] = +16 ; lift( x+1, l, res, tfr );
-   res[  l->sp[x]  ] = -16 ; lift( x+1, l, res, tfr );
-   res[  l->sp[x]  ] = 0;
-}
+if ( spc[ x ]  && zzz[ x ]  ) {
+   if ( x < 128  || spc[ x - 128 ] == 0 ) {
+	   fct[ x ]  = +16 ; lift( x+1 );
+   	   fct[ x ]  = -16 ; lift( x+1 );
+           fct[ x ] = 0;
+   } else lift( x+1 );
+} else   lift( x+1 );
 
 }
-int admis( listspace l, int tfr[ 256 ]  )
+void  admis(  )
 { 
-  int  res[ 256 ];
   EXIT = 0;
   int t;
   for( t = 0; t < 256 ;  t++ )
-	  res[ t ] = 0; 
+	  fct[ t ] = spc[ t ] * tfr[ t] ; 
   trial = 0;
-  lift( 0,  l, res, tfr  );
-  printf("#trials : %d\n", trial );
-  return EXIT;
+  lift( 0   );
+  //printf("#trials : %d\n", trial );
+ 
 }
 
-int score( listspace l, int tfr[ 256 ]  )
+int score(    )
 { 
-  int  res[ 256  ];
   int t;
-  for( t = 0; t < subsize ; t++ )
-          res[ t ] = tfr[ l->sp[t]  ];
   int z = 0;
-  for ( t = 0; t < subsize ; t++ )
-          if ( res[ t ] == ZZ ) z++;
+  for ( t = 0; t < 128 ; t++ )
+          if ( spc[ t ] + spc[ t + 128 ] - spc[ t ]*spc[ t + 128] ) z++;
+
   return z;
 }
 
 
 
 int test( boole f )
-{ int tfr[ 256 ];
-  vector X = 0;
+{ 
   int x, y, t, cpt = 0;
-  for( t = 0; t < ffsize; t++ )
+  for( t =  0; t < ffsize; t++ )
 	  tfr[ t ] = f[ t ] ? -1 : 1 ;
-   Fourier( tfr, ffsize );
-   for( t = 0; t < ffsize; t++ )
-	tfr[t + ffsize] = (tfr[t] == 0) ? ZZ : 0;  
+   Fourier( tfr, 128 );
+   for( t = 0; t < 128; t++ )
+	if ( tfr[ t ] != 0 ) tfr[ t + 128 ] = tfr[ t ];
+        else zzz[ t ] = 1;
+
   int iter = 0;
   while ( iter--) {
 	  do { t = random() % 256; } while ( tfr[t] != 16 && tfr[t] != -16 ) ; tfr[t] = ZZ; 
   }
-   listspace aux = lsp, auy = NULL;
-   int best = 256;
+   listspace aux = lsp;
+   int best = 256, mult;
    while ( aux ) {
-	  int tmp = score( aux, tfr ); 
+  	  for( t = 0; t < 256; t++ )
+		  spc[ t ] = 0;
+	  for( t = 0; t < subsize; t++ )
+		  spc[ aux->sp[t] ] = 1; 
+	  int tmp = score(   ); 
 	  if ( tmp > 0 && tmp < best ) {
-		  auy  = aux;
 		  best = tmp;
+		  mult = 0;
+	  }
+	  if ( tmp == best ) mult++;
+	  aux = aux->next;
+   }
+   printf("\nbest : %d (%d)\n", best , mult);
+   aux = lsp;
+   while ( aux ) {
+	   for( t = 0; t < 256; t++ )
+                  spc[ t ] = 0;
+          for( t = 0; t < subsize; t++ )
+                  spc[ aux->sp[t] ] = 1;
+
+	  int tmp = score(  ); 
+	  if ( tmp == best  ) {
+		  admis(  );
+		  if ( ! EXIT ) 
+			  return 0;
 	  }
 	  aux = aux->next;
    }
-   printf("\nbest:%d\n", best  );
-   return admis( auy, tfr );
+   return 1;
 }
 
 int main(int argc, char *argv[])
@@ -155,12 +176,11 @@ int main(int argc, char *argv[])
 
     while ((f = loadBoole(src))) {
 		if (  job == num % mode) {
-		      
+		      assert( isnearbent( f ) == 1 ); 
 		      if ( test( f ) ) {
 			      panf( stdout, f );
 			      count++;
 		      }
-    		      printf("\n#count=%d / %d\n", count, num );
 	}
 	free( f );
 	num++;
