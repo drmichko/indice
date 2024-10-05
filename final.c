@@ -20,143 +20,124 @@ listspace lsp = NULL;
 int Soluce[ 8 ];
 int soluce;
 
-int    countp = 0, total = 0;
-void  * rootp = NULL;
 
-typedef struct list {
-	int* L, *H;
-	vector key;
-	struct list * next;
-} enrlist, *list;
+int value[ 9 ][256];
 
-list  lf[ 8 ] = {NULL}, result;
-list* table;
-
-int tfr[ 256 ];
-int zzz[ 256  ];
-int spc[ 256  ];
-int fct[ 256 ];
-
-#define  ZZ  ( '?' )
-int EXIT = 0;
-
-int ok ( int v )
+void mkvalue( void )
+{
+int r;
+for( r = 0; r < 9; r++ ){
+	int v;
+	for( v = 0; v < 256; v++ )
+		value[ r ][ v ] = 0;
+	int q = 1 << ( 8 - r );
+	int p;
+	for( p = 0; 2*p <= q; p++ )
+		value[ r ][(q - 2*p)  ] =  1;
+}
+}
+int accept( int r , int v )
 {
 v = abs( v );
-if ( v % subsize) return 0;
-v = v / subsize;
-if ( subsize == 128 ) 
-	return ( v == 0 || v == 2  );
-if ( subsize == 64 )
-	return ( v == 0 || v == 2 || v == 4  );
-return ( v== 8 || v == 6  || v == 4 || v == 2  || v == 0 );
+return  ( v < 256  &&  value[ r ][ v ] );
 }
 
-int good(  )
-{
-	int f[ 256 ], a;
-	for( a = 0; a < 256; a++ )
-		f[ a ] = fct[ a ];
-        Fourier( f, 256 );	
-	//printf("\n");for( a = 0; a < 256 ; a++) printf(" %3d", f[a]/subsize );
-	for( a = 0; a < 256  && ok( f[ a ]  ) ; a++);;
-	return ( a == 256  );
+int admis( int r, int tfr[]    )
+{ int f[ 256 ] = { 0 };
+  int t, q = 1 << r;
+  for( t = 0; t < q; t++ )
+	  f[t] = tfr[t];
+  // printf("\nadmis %d :", r ); for( t = 0; t < 256 ; t++ ) printf("%3d", tfr[t] ); printf("\n");
+  Fourier( f, 256 );
+  //printf("\ntfr %d :", r ); for( t = 0; t < q ; t++ ) printf("%3d", f[t] ); printf("\n");
+  // for( t = 0; t < q; t++ ) printf(" %3d", bad( f[t], r ) ); printf("\n");
+  for( t = 0; t < q; t++ )
+	  f[ t ] =  f[ t ] / q;
+  for( t = 0; t < q; t++ )
+	 if ( ! accept( r, f[ t ] ) ) {
+		 //printf("\n#bad at %d :  %d\n", r, f[t] );
+		 return 0;
+	 }
+  return 1;
 }
 
-int trial;
-
-void lift( int x )
-{
-
-if ( EXIT ) return; 
-
-if ( x == 256   ) {
-	trial++;
-	if ( good(  ) ) 
-		EXIT = 1;
-	return;
-}
-
-if ( spc[ x ]  && zzz[ x ]  ) {
-   if ( x < 128  || spc[ x - 128 ] == 0 ) {
-	   fct[ x ]  = +16 ; lift( x+1 );
-   	   fct[ x ]  = -16 ; lift( x+1 );
-           fct[ x ] = 0;
-   } else lift( x+1 );
-} else   lift( x+1 );
-
-}
-void  admis(  )
-{ 
-  EXIT = 0;
+int ctrl( int r, int tfr[]    )
+{ int f[ 256 ] = { 0 };
   int t;
-  for( t = 0; t < 256 ;  t++ )
-	  fct[ t ] = spc[ t ] * tfr[ t] ; 
-  trial = 0;
-  lift( 0   );
-  //printf("#trials : %d\n", trial );
- 
+  for( t = 0; t < 256; t++ )
+	  f[t] = tfr[ t ];
+  Fourier( f, 256 );
+  for( t = 0; t < 256; t++ )
+	  f[ t ] =  f[ t ] / 256;
+  for( t = 0; t < 256; t++ ) 
+	  if ( ! accept( 8, f[t] ) ) {
+		  //printf("\n#bad :  %d\n", f[t] );
+		  break;
+	  }
+  for( t = 0; t < 256; t++ )
+	 if ( ! accept( f[ t ], 8 ) ) return 0;
+  return 1;
 }
-
-int score(    )
+void search( int r, int tfr[256]   )
 { 
   int t;
-  int z = 0;
-  for ( t = 0; t < 128 ; t++ )
-          if ( spc[ t ] + spc[ t + 128 ] - spc[ t ]*spc[ t + 128] ) z++;
 
-  return z;
+  if ( r == 6  ) {
+  	  //printf("at %d :", r ); for( t = 0; t < 256 ; t++ ) printf("%3d", tfr[t] ); printf("\n");
+	  if ( admis( 5, tfr ) )
+		  soluce++;
+	  return;
+  }
+  if ( r == 8  ) {
+  	  //printf("at %d :", r ); for( t = 0; t < 256 ; t++ ) printf("%3d", tfr[t] ); printf("\n");
+	  if ( ctrl( 8, tfr ) )
+		  soluce++;
+	  return;
+  }
+  int q = 1 << r;
+  int pos[ 256] ={ 0 }, nbp = 0;
+  for( t = 0; t < q; t++ ){
+	  if ( tfr[ t  ] == 0 ) {
+		  pos[ nbp++ ] = t;
+	  }
+  }
+  int i, p;
+  //printf("\nr=%d nbp=%d :", r, nbp );
+  //for( p = 0; p < nbp; p++ )
+//	  printf(" %d", pos[p] );
+
+  if ( nbp > 0 ){
+  	for( p = 0; p < (1 << nbp) ; p++ ) {
+     		for( i = 0; i < nbp; i++ ){
+	     		if ( ( 1 <<i ) & p ) 
+			      tfr[ pos[ i ] ] = 16;
+	     		else  tfr[ pos[ i ] ] = -16;
+	     	tfr [ pos[ i ] + 128  ] =  - tfr[ pos[ i ] ];
+     		}
+     		if ( admis( r , tfr) )  
+			search( r + 1, tfr );
+     }
+     for( i = 0; i < nbp; i++ ) tfr [ pos[ i ] + 128  ] = tfr[ pos[ i ] ]  = 0;
+  } else search( r + 1, tfr );
 }
-
-
 
 int test( boole f )
 { 
-  int x, y, t, cpt = 0;
+  int t;
+  int tfr[ 256 ] = { 0 };
   for( t =  0; t < ffsize; t++ )
 	  tfr[ t ] = f[ t ] ? -1 : 1 ;
    Fourier( tfr, 128 );
    for( t = 0; t < 128; t++ )
-	if ( tfr[ t ] != 0 ) tfr[ t + 128 ] = tfr[ t ];
-        else zzz[ t ] = 1;
+	if ( tfr[ t ] != 0 ) 
+		tfr[ t + 128 ] = tfr[ t ];
 
-  int iter = 0;
-  while ( iter--) {
-	  do { t = random() % 256; } while ( tfr[t] != 16 && tfr[t] != -16 ) ; tfr[t] = ZZ; 
-  }
-   listspace aux = lsp;
-   int best = 256, mult;
-   while ( aux ) {
-  	  for( t = 0; t < 256; t++ )
-		  spc[ t ] = 0;
-	  for( t = 0; t < subsize; t++ )
-		  spc[ aux->sp[t] ] = 1; 
-	  int tmp = score(   ); 
-	  if ( tmp > 0 && tmp < best ) {
-		  best = tmp;
-		  mult = 0;
-	  }
-	  if ( tmp == best ) mult++;
-	  aux = aux->next;
-   }
-   printf("\nbest : %d (%d)\n", best , mult);
-   aux = lsp;
-   while ( aux ) {
-	   for( t = 0; t < 256; t++ )
-                  spc[ t ] = 0;
-          for( t = 0; t < subsize; t++ )
-                  spc[ aux->sp[t] ] = 1;
-
-	  int tmp = score(  ); 
-	  if ( tmp == best  ) {
-		  admis(  );
-		  if ( ! EXIT ) 
-			  return 0;
-	  }
-	  aux = aux->next;
-   }
-   return 1;
+   soluce   = 0;
+   search( 2   , tfr);
+	  printf("\ns=%d\n", soluce );
+   return soluce > 0 ;
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -170,9 +151,7 @@ int main(int argc, char *argv[])
     int num = 0, count = 0;
 
 
-    lsp = spaces(  optR  ,  8,  0 );
-
-    subsize = 1 << optR; 
+    mkvalue( );
 
     while ((f = loadBoole(src))) {
 		if (  job == num % mode) {
@@ -187,5 +166,6 @@ int main(int argc, char *argv[])
     }
     printf("\ncount=%d / %d\n", count, num );
    
+	  printf("\ns=%d\n", soluce );
     return 0;
 }
