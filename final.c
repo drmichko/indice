@@ -7,7 +7,7 @@
 #include "degrees.h"
 
 
-int tfr[ 256 ];
+int tfr[ 256 ],  sgn[ 256 ], K [ 256 ];
 
 typedef struct list {
         int * fct;
@@ -109,6 +109,13 @@ list  mkblock ( int offset  )
 	  } else  left[t] = tfr[ t + offset ]; 
           right[ t ] = left[ t ];
   }
+  for( t = 0; t < 32 ; t++ )
+         K[ t ] = sgn[ t + offset  ];
+  for( t = 0; t < 32; t+= 8)
+	  Fourier( K, 8 );
+   
+
+
   soluce = 0;
   result = NULL;
   int i, p;
@@ -179,6 +186,9 @@ printf("\nglue 64 : %d", soluce );
 int test( boole f )
 { 
   int t;
+  for( t =  0; t < 128; t++ )
+	  sgn[ t ] = f[ t ] ? -1 : 1 ;
+
   for( t =  0; t < 128; t++ )
 	  tfr[ t ] = f[ t ] ? -1 : 1 ;
    Fourier( tfr, 128 );
