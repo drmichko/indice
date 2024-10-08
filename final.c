@@ -98,43 +98,6 @@ int admis32( int fct[] )
 }
 
 
-list  mkblock ( int offset  )
-{ 
-  int t;
-  int pos[ 32 ] ={ 0 }, nbp = 0;
-  int left[ 32 ] = {0}, right[ 32 ] = {0};
-  for( t = 0; t < 32 ; t++ ){
-	  if ( tfr[ t + offset  ] == 0 ) {
-		  pos[ nbp++ ] = t ;
-	  } else  left[t] = tfr[ t + offset ]; 
-          right[ t ] = left[ t ];
-  }
-  for( t = 0; t < 32 ; t++ )
-         K[ t ] = sgn[ t + offset  ];
-  for( t = 0; t < 32; t+= 8)
-	  Fourier( K, 8 );
-   
-
-
-  soluce = 0;
-  result = NULL;
-  int i, p;
-  for( p = 0; p < (1 << nbp) ; p++ ) {
-     	for( i = 0; i < nbp; i++ ){
-	     	if ( ( 1 <<i ) & p ) 
-			      left[ pos[ i ] ] = 1;
-	     		else  left[ pos[ i ] ] = -1;
-	     	right [ pos[ i ]  ] =  - left[ pos[ i ] ];
-     		}
-     	if ( admis32( left )  &&  admis32( right  ) )  {
-			 push32( left );
-			 soluce++;
-		}
-	}
-printf(" %d", soluce );
-return result;
-}
-
 int admis64( int fct []  )
 { int f[ 256 ] = { 0 };
   int t;
@@ -146,6 +109,40 @@ int admis64( int fct []  )
 		 return 0;
 	 }
   return 1;
+}
+
+list  mkblock ( int offset  )
+{ 
+  int t;
+  int pos[ 32 ] ={ 0 }, nbp = 0;
+  int left[ 64 ];
+  for( t = 0; t < 32 ; t++ ){
+	  if ( tfr[ t + offset  ] == 0 ) {
+		  pos[ nbp++ ] = t ;
+	  } else  left[t] = left[ t + 32 ] = tfr[ t + offset ]; 
+  }
+
+  soluce = 0;
+  result = NULL;
+  int i, p;
+  for( p = 0; p < (1 << nbp) ; p++ ) {
+     	for( i = 0; i < nbp; i++ ){
+	     	if ( ( 1 <<i ) & p ) { 
+			      left[ pos[ i ] ] = 1;
+			      left[ pos[ i ] + 32 ] = -1;
+		}
+	     		else  {
+				left[ pos[ i ] ] = -1;
+			        left[ pos[ i ] + 32 ] = +1;
+			}
+     		}
+     	if ( admis64( left )  )  {
+			push32( left );
+			soluce++;
+		}
+	}
+printf(" %d ( %d ) ", soluce, nbp  );
+return result;
 }
 
 int check64( int offset, int fct []  )
@@ -176,7 +173,8 @@ while ( ll ) {
 	while ( lx ) {
 		for( t = 0; t < 32; t++ )
 			fct[t + 32 ] = lx->fct[t];
-		if ( admis64( fct ) && check64(offset, fct) ) soluce++;
+		if ( admis64( fct ) ) soluce++;
+		//&& check64(offset, fct) ) soluce++;
 		lx = lx -> next;
 	}
 	ll = ll-> next;
@@ -196,25 +194,12 @@ int test( boole f )
 	if ( tfr[ t ] != 0 ) 
 		tfr[ t + 128 ] = tfr[t] = ( tfr[ t ] > 0 )   ? 1 : -1;
 
-   printf("\n");
-   lf[ 0 ] =  mkblock( 0 );
-   
-   printf("\n");
-   lf[ 1 ] =  mkblock( 32 );
+     printf("\n");
+     int q; 
+   for ( q = 0; q < 4; q++ ) 
+   	lf[ q ] =  mkblock( q * 32 );
 
-   glue64( 0, lf[0], lf[1] );
-   freelist( lf[0] );
-   freelist( lf[1] );
-   
-   printf("\n");
-   lf[ 2 ] =  mkblock( 64 );
-   
-   printf("\n");
-   lf[ 3 ] =  mkblock( 96 );
-
-   glue64( 64, lf[2], lf[3] );
-   freelist( lf[2] );
-   freelist( lf[3] );
+    for( q = 0; q < 2; q++ ) glue64( q * 64 ,  lf[ 2*q ], lf[ 2*q +1] ); 
    
    return soluce > 0 ;
 }

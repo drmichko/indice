@@ -12,7 +12,7 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : essai.exe final.exe test.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
+all : final.exe test.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
 	
 
 
