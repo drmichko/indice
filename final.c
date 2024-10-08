@@ -141,7 +141,7 @@ list  mkblock ( int offset  )
 			soluce++;
 		}
 	}
-printf(" %d ( %d ) ", soluce, nbp  );
+printf("\nblock %d ( %d )\n", soluce, nbp  );
 return result;
 }
 
@@ -173,14 +173,15 @@ while ( ll ) {
 	while ( lx ) {
 		for( t = 0; t < 32; t++ )
 			fct[t + 32 ] = lx->fct[t];
-		if ( admis64( fct ) ) soluce++;
-		//&& check64(offset, fct) ) soluce++;
+		if ( admis64( fct )  && check64(offset, fct) ) soluce++;
 		lx = lx -> next;
 	}
 	ll = ll-> next;
 }
-printf("\nglue 64 : %d", soluce );
+printf("\nglue 64 : %d\n", soluce );
 }
+
+
 int test( boole f )
 { 
   int t;
