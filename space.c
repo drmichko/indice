@@ -8,10 +8,10 @@ int nbspaces = 0;
 int nbl = 4;
 int nbc = 8;
 
-void appendspace( int a, int V[] , listspace *lsp )
+void appendspace( int a, int P, int V[] , listspace *lsp )
 { listspace aux;
   aux = calloc( 1, sizeof(enrspace) );
-  aux->p = a;
+  aux->p = P;
   int i;
   for( i = 0; i < MAX; i++ )
   	aux->V[i] = V[i];
@@ -50,10 +50,10 @@ void echelon( int P, int *A, int l, int c, listspace *lsp, int affine )
 	    if ( affine  ) {
 	      for ( a = 0; a < ffsize ; a++ )
 		   if( ( a & P ) == 0 )
-			   appendspace( a ,  V  , lsp  );
+			   appendspace( a , P,  V  , lsp  );
 	    }
 	    else 
-		    appendspace( 0  ,  V  , lsp  );
+		    appendspace( 0  ,  P ,  V  , lsp  );
 	}
 	return;
     }

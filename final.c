@@ -317,8 +317,9 @@ int glue128( list ll, int right[] )
 int fct[ 128 ];
 int res = 0;
 int t;
-	for( t = 0; t < 34; t++ )
-               fct [t + 64 ] = right[t ];
+	for( t = 0; t < 64 ; t++ )
+               fct [t + 64 ] = right[ t ];
+
 	while ( ll ) {
 		for( t = 0; t < 64 ; t++ )
 			fct[ t  ] = ll->fct[t];

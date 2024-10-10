@@ -19,7 +19,7 @@ void initdegrees( int thres, int r)
 {
 	threshold  = thres;
         subdim     = r;
-	lsh = spaces( r , ffdimen, 1 ); 
+	lsh = spaces( r , ffdimen, 0  ); 
 }
 
 int booledeg(boole f, int size)
