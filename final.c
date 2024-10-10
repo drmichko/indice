@@ -6,12 +6,18 @@
 #include "option.h"
 #include "degrees.h"
 
+       #define _GNU_SOURCE         /* Consultez feature_test_macros(7) */
+       #include <search.h>
+
+#define  putbit( t, X ) ( X |= ( ((vector)1) << t ) )
+#define  xorbit( t, X ) ( X ^= ( ((vector)1) << t ) )
+
+
 
 int tfr[ 256 ],  sgn[ 256 ], K [ 256 ];
 
 typedef struct list {
         int * fct;
-        vector key;
         struct list * next;
 } enrlist, *list;
 
@@ -28,6 +34,104 @@ while ( l ){
 }
 }
 
+int     countp = 0;
+void  * rootp = NULL;
+
+list* table;
+
+typedef struct _node_ {
+        int    val;
+        vector key ;
+} node_t;
+
+static int nodecompare( const void *a,  const void *b)
+{
+    node_t* fa, *fb;
+  fa = (node_t*) a;
+  fb = (node_t*) b;
+  if ( fa->key < fb->key ) return -1;
+  if ( fa->key > fb->key ) return +1;
+
+
+  return 0;
+}
+
+int nouvelle;
+
+int searchkey( vector key,  void **rootp, int* count )
+{
+node_t  *ptr = malloc( sizeof(node_t) );
+ptr->key = key;
+const void *ret;
+int value;
+    ret  = tsearch((void *) ptr, rootp , nodecompare );
+    if ( ret == NULL)
+        exit(EXIT_FAILURE);
+    if ((*(node_t **) ret)->key != ptr->key ) {
+        value = (*(node_t**) ret)->val;
+        free( ptr );
+        nouvelle = 0;
+        return value;
+    };
+    // it's new !
+    ptr->val = *count;
+    *count   = *count + 1;
+    value = ptr->val;
+    nouvelle = 1;
+    return value;
+}
+
+int findkey( vector key,  void **rootp  )
+{
+node_t  *ptr = malloc( sizeof(node_t) );
+ptr->key = key;
+const void *ret;
+    ret  = tfind((void *) ptr, rootp , nodecompare );
+    if ( ret == NULL) return  -1;
+    free( ptr );
+    return (*(node_t**) ret)->val;
+}
+
+
+
+
+void freetable( list * t, int n )
+{
+int i;
+for( i = 0; i < n; i++ )
+        freelist( t[i] );
+free( t) ;
+}
+
+
+vector  key( int fct []  )
+{ int f[ 256 ] = { 0 };
+  int t;
+  vector X = 0;
+  for( t = 0; t < 64; t++ )
+	  f[ t ] = fct[ t ];
+  Fourier( f,  64   );
+  for( t = 0; t < 64 ; t++ )
+	 if ( abs( f[t] ) == 8  ) 
+		 putbit( t, X );
+  return X;
+}
+
+void mktable( list l, int n )
+{
+table = calloc( n, sizeof(list) );
+rootp  = NULL;
+countp = 0;
+while ( l ) {
+	vector X = key( l->fct ); 
+        int val = searchkey( X , &rootp, &countp );
+        list aux = l;
+        l = l-> next;
+        aux ->next =  table[ val ];
+        table[ val ] = aux;
+}
+printf("\n#countp : %d", countp );
+}
 
 void print( int f[], int q )
 {
@@ -58,13 +162,19 @@ void push32( int f[] )
   result = aux;
 }
 
+void push64( int f[] )
+{ list aux;
+  aux = malloc( sizeof(enrlist) );
+  aux->fct = calloc( 64, sizeof(int ) );
+  int t;
+  for( t = 0; t < 64; t++ )
+        aux->fct[t] = f[ t ];
+  aux->next = result;
+  result = aux;
+}
+
+
 int subsize = 128;
-       #define _GNU_SOURCE         /* Consultez feature_test_macros(7) */
-       #include <search.h>
-
-#define  putbit( t, X ) ( X |= ( ((vector)1) << t ) ) 
-#define  xorbit( t, X ) ( X ^= ( ((vector)1) << t ) ) 
-
 
 listspace lsp = NULL;
 
@@ -75,6 +185,7 @@ int accept32(  int v )
 v = abs( v );
 return  ( v == 0 || v == 4 || v == 8 || v == 12 || v == 16 );
 }
+
 
 int accept64(  int v )
 {
@@ -106,6 +217,19 @@ int admis64( int fct []  )
   Fourier( f,  64   );
   for( t = 0; t < 64 ; t++ )
 	 if ( ! accept64(  f[ t ] ) ) {
+		 return 0;
+	 }
+  return 1;
+}
+
+int admis128( int fct []  )
+{ int f[ 256 ] = { 0 };
+  int t;
+  for( t = 0; t < 64; t++ )
+	  f[ t ] = fct[ t ];
+  Fourier( f,  128  );
+  for( t = 0; t < 128 ; t++ )
+	 if ( f[t] && abs(  f[ t ] ) != 16  ) {
 		 return 0;
 	 }
   return 1;
@@ -160,11 +284,15 @@ int check64( int offset, int fct []  )
   return 1;
 }
 
+
+
 void glue64( int offset, list ll, list lr)
 {
 list lx;
 int fct[64];
 soluce = 0;
+result = NULL;
+
 while ( ll ) {
 	int t;
 	for( t = 0; t < 32; t++ )
@@ -173,7 +301,10 @@ while ( ll ) {
 	while ( lx ) {
 		for( t = 0; t < 32; t++ )
 			fct[t + 32 ] = lx->fct[t];
-		if ( admis64( fct )  && check64(offset, fct) ) soluce++;
+		if ( admis64( fct )  && check64(offset, fct) ) {
+			push64( fct );
+			soluce++;
+		}
 		lx = lx -> next;
 	}
 	ll = ll-> next;
@@ -181,6 +312,50 @@ while ( ll ) {
 printf("\nglue 64 : %d\n", soluce );
 }
 
+int glue128( list ll, int right[] )
+{
+int fct[ 128 ];
+int res = 0;
+int t;
+	for( t = 0; t < 34; t++ )
+               fct [t + 64 ] = right[t ];
+	while ( ll ) {
+		for( t = 0; t < 64 ; t++ )
+			fct[ t  ] = ll->fct[t];
+		if ( admis128( fct ) ) res++;
+		ll = ll-> next;
+		}
+  return res;
+}
+
+
+void final( int offset, list ll, list lr)
+{
+list lx;
+int fct[64];
+soluce = 0;
+result = NULL;
+while ( ll ) {
+	int t;
+	for( t = 0; t < 32; t++ )
+                        fct[t] = ll->fct[t];
+	lx = lr;
+	while ( lx ) {
+		for( t = 0; t < 32; t++ )
+			fct[t + 32 ] = lx->fct[t];
+		if ( admis64( fct )  && check64(offset, fct) ) {
+			 vector X = key( fct );
+                         int val = findkey( X , &rootp );
+			 if ( val >= 0 )  
+				 soluce+=  glue128( table[val],  fct );
+			 
+		}
+		lx = lx -> next;
+	}
+	ll = ll-> next;
+}
+printf("\nglue 64 : %d\n", soluce );
+}
 
 int test( boole f )
 { 
@@ -200,9 +375,21 @@ int test( boole f )
    for ( q = 0; q < 4; q++ ) 
    	lf[ q ] =  mkblock( q * 32 );
 
-    for( q = 0; q < 2; q++ ) glue64( q * 64 ,  lf[ 2*q ], lf[ 2*q +1] ); 
-   
-   return soluce > 0 ;
+    glue64( 0,  lf[ 0 ], lf[ 1 ] ); 
+    freelist( lf[0] );
+    freelist( lf[1] );
+    list lg = result;
+    int nb = soluce;
+    mktable( lg, nb ); 
+    final( 64, lf[ 2 ], lf[ 3 ] ); 
+    printf("\nfinal=%d", soluce );
+    freetable( table, nb );
+    tdestroy( rootp, free );
+
+    freelist( lf[2]) ;
+    freelist( lf[3]) ;
+    //freelist( lg );
+    return soluce > 0 ;
 }
 
 
@@ -212,6 +399,7 @@ int main(int argc, char *argv[])
     boole f;
     //FILE * src = fopen( "data/baby-1-6-6.dat", "r" );
 
+    initboole( 7 );
     option(argc, argv);
 
     
@@ -225,6 +413,7 @@ int main(int argc, char *argv[])
 		      if ( test( f ) ) {
 			      count++;
 		      }
+    		      printf("\ncount=%d / %d\n", count, num );
 	}
 	free( f );
 	num++;

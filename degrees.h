@@ -6,6 +6,7 @@
 #include "option.h"
 
 #include "basistools.h" 
+extern listspace lsh;
 
 void initdegrees( int thres, int r);
 int booledeg(boole f, int size);
