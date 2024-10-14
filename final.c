@@ -13,16 +13,17 @@
 #define  xorbit( t, X ) ( X ^= ( ((vector)1) << t ) )
 
 
+#include "fft.c"
 
-int tfr[ 256 ],  sgn[ 256 ], K [ 256 ];
+
+short int tfr[ 256 ];
 
 typedef struct list {
-        int * fct;
+        short int * fct;
         struct list * next;
 } enrlist, *list;
 
 list  lf[ 4 ] = {NULL}, result;
-
 
 void freelist( list l )
 {
@@ -104,15 +105,15 @@ free( t) ;
 }
 
 
-vector  key( int fct []  )
-{ int f[ 256 ] = { 0 };
-  int t;
+vector  key( short int fct []  )
+{ short int f[ 256 ] = { 0 };
+  short int t;
   vector X = 0;
   for( t = 0; t < 64; t++ )
 	  f[ t ] = fct[ t ];
-  Fourier( f,  64   );
+  fast64( f );
   for( t = 0; t < 64 ; t++ )
-	 if ( abs( f[t] ) == 8  ) 
+	 if ( abs( f[ t ] ) == 8  ) 
 		 putbit( t, X );
   return X;
 }
@@ -133,40 +134,22 @@ while ( l ) {
 printf("\n#countp : %d", countp );
 }
 
-void print( int f[], int q )
-{
-printf("\nfct:");
-int t;
-for( t = 0; t < q; t++ )
-	printf(" %d", f[t] );
-printf("\n");
-}
-
-void plist( list l, int q  )
-{
-while ( l ){
-        list aux = l;
-        l = l->next;
-        print( aux->fct, q );
-}
-}
-
-void push32( int f[] )
+void push32( short int f[] )
 { list aux;
   aux = malloc( sizeof(enrlist) );
-  aux->fct = calloc( 32, sizeof(int ) ); 
-  int t;
+  aux->fct = calloc( 32, sizeof( short int ) ); 
+  short int t;
   for( t = 0; t < 32; t++ )
   	aux->fct[t] = f[ t ];
   aux->next = result;
   result = aux;
 }
 
-void push64( int f[] )
+void push64( short int f[] )
 { list aux;
   aux = malloc( sizeof(enrlist) );
-  aux->fct = calloc( 64, sizeof(int ) );
-  int t;
+  aux->fct = calloc( 64, sizeof( short int  ) );
+  short int t;
   for( t = 0; t < 64; t++ )
         aux->fct[t] = f[ t ];
   aux->next = result;
@@ -193,28 +176,30 @@ v = abs( v );
 return  ( v == 0 ||  v == 8 || v == 16 );
 }
 
-int admis32( int fct[] )
-{ int f[ 256 ] = { 0 };
-  int t;
+int admis32( short int fct[] )
+{ short int f[ 256 ] = { 0 };
+  short int t;
   for( t = 0; t < 32; t++ )
 	  f[ t ] = fct[ t ];
 
-  Fourier( f,  32   );
-  
+  fft( f,  32   );
+  int cpt = 0;
   for( t = 0; t < 32 ; t++ )
 	 if ( ! accept32(  f[ t ] ) ) {
 		 return 0;
+	 if ( abs( f[t] ) == 16 ) cpt++;
+	 if ( cpt > 1 ) return 0;
 	 }
   return 1;
 }
 
 
-int admis64( int fct []  )
-{ int f[ 256 ] = { 0 };
-  int t;
+int admis64( short int fct []  )
+{ short int f[ 256 ] = { 0 };
+  short int t;
   for( t = 0; t < 64; t++ )
 	  f[ t ] = fct[ t ];
-  Fourier( f,  64   );
+  fast64( f );
   for( t = 0; t < 64 ; t++ )
 	 if ( ! accept64(  f[ t ] ) ) {
 		 return 0;
@@ -222,31 +207,45 @@ int admis64( int fct []  )
   return 1;
 }
 
-int admis128( int fct []  )
-{ int f[ 256 ] = { 0 };
-  int t;
-  for( t = 0; t < 64; t++ )
+int admis128( short int fct []  )
+{ short int f[ 256 ] = { 0 };
+  short int t;
+  for( t = 0; t < 128; t++ )
 	  f[ t ] = fct[ t ];
-  Fourier( f,  128  );
+  fast128( f ) ;
   for( t = 0; t < 128 ; t++ )
-	 if ( f[t] && abs(  f[ t ] ) != 16  ) {
+	 if ( f[  t ] && abs(  f[ t ] ) != 16  ) {
 		 return 0;
 	 }
   return 1;
 }
 
-list  mkblock ( int offset  )
+int complexity ( int q  )
 { 
-  int t;
-  int pos[ 32 ] ={ 0 }, nbp = 0;
-  int left[ 64 ];
+  short int t;
+  int nbp = 0;
+  int offset = 32 * q;
   for( t = 0; t < 32 ; t++ ){
-	  if ( tfr[ t + offset  ] == 0 ) {
+	  if ( tfr[ t + offset    ] == 0 ) 
+		  nbp++;
+  }
+  return nbp;
+}
+
+list  mkblock ( int q  )
+{ 
+  short int t;
+  short int pos[ 32 ] ={ 0 };
+  int nbp = 0;
+  short int left[ 64 ];
+  int offset = 32 * q;
+  for( t = 0; t < 32 ; t++ ){
+	  if ( tfr[ t + offset    ] == 0 ) {
 		  pos[ nbp++ ] = t ;
 	  } else  left[t] = left[ t + 32 ] = tfr[ t + offset ]; 
   }
 
-  soluce = 0;
+  int soluce = 0;
   result = NULL;
   int i, p;
   for( p = 0; p < (1 << nbp) ; p++ ) {
@@ -265,18 +264,18 @@ list  mkblock ( int offset  )
 			soluce++;
 		}
 	}
-printf("\nblock %d ( %d )\n", soluce, nbp  );
-return result;
+   printf(" %d ( %d ) ", soluce, nbp  );
+   return result;
 }
 
-int check64( int offset, int fct []  )
-{ int f[ 256 ] = { 0 };
-  int t;
+int check64( int offset, short int fct []  )
+{ short int f[ 256 ] = { 0 };
+  short int t;
   for( t = 0; t < 64; t++ )
 	  if( tfr[ t + offset ] )  f[ t ] = fct[ t ];
           else f[ t ] = - fct[ t ];
 
-  Fourier( f,  64   );
+  fast64( f );
   for( t = 0; t < 64 ; t++ )
 	 if ( ! accept64(  f[ t ] ) ) {
 		 return 0;
@@ -286,10 +285,10 @@ int check64( int offset, int fct []  )
 
 
 
-void glue64( int offset, list ll, list lr)
+void glue64( list ll, list lr)
 {
 list lx;
-int fct[64];
+short int fct[ 64 ];
 soluce = 0;
 result = NULL;
 
@@ -301,7 +300,7 @@ while ( ll ) {
 	while ( lx ) {
 		for( t = 0; t < 32; t++ )
 			fct[t + 32 ] = lx->fct[t];
-		if ( admis64( fct )  && check64(offset, fct) ) {
+		if ( admis64( fct )  && check64( 64 , fct) ) {
 			push64( fct );
 			soluce++;
 		}
@@ -312,84 +311,139 @@ while ( ll ) {
 printf("\nglue 64 : %d\n", soluce );
 }
 
-int glue128( list ll, int right[] )
+int check128( short int fct []  )
+{ short int f[ 256 ] = { 0 };
+  short int t;
+  for( t = 0; t < 128; t++ )
+      f[ t ] = fct[ t ];
+  for( t = 128; t < 256; t++ )
+	  if( tfr[ t ] )  f[ t  ] = tfr[t];
+          else f[ t ] = - fct[ t-128 ];
+
+  fft( f,  256   );
+  for( t = 0; t < 256; t++ )
+	 if ( abs(  f[ t ] ) != 16 ) 
+		 return 0;
+	 
+  return 1;
+}
+
+int glue128( list ll,  short int right[] )
 {
-int fct[ 128 ];
+short int fct[ 128 ];
 int res = 0;
-int t;
+short int t;
 	for( t = 0; t < 64 ; t++ )
                fct [t + 64 ] = right[ t ];
 
 	while ( ll ) {
 		for( t = 0; t < 64 ; t++ )
 			fct[ t  ] = ll->fct[t];
-		if ( admis128( fct ) ) res++;
+		if ( check128( fct )  ) res++;
 		ll = ll-> next;
 		}
   return res;
 }
 
 
-void final( int offset, list ll, list lr)
+void final(  list ll, list lr)
 {
 list lx;
-int fct[64];
+short int fct[64];
 soluce = 0;
 result = NULL;
+int trial = 0;
 while ( ll ) {
-	int t;
+	short int t;
 	for( t = 0; t < 32; t++ )
                         fct[t] = ll->fct[t];
 	lx = lr;
 	while ( lx ) {
 		for( t = 0; t < 32; t++ )
 			fct[t + 32 ] = lx->fct[t];
-		if ( admis64( fct )  && check64(offset, fct) ) {
+		if ( admis64( fct )  && check64( 64 , fct) ) {
 			 vector X = key( fct );
                          int val = findkey( X , &rootp );
-			 if ( val >= 0 )  
+			 if ( val >= 0 ) {  
 				 soluce+=  glue128( table[val],  fct );
-			 
+				 trial++;
+			 }
 		}
 		lx = lx -> next;
 	}
 	ll = ll-> next;
 }
-printf("\nglue 64 : %d\n", soluce );
+printf("\nglue 128 : %d (%d) \n", soluce, trial );
+}
+
+void prepare( boole f )
+{ short int t;
+  for( t =  0; t < 128; t++ )
+          tfr[ t ] = f[ t ] ? -1 : 1 ;
+   fast128( tfr );
+   for( t = 0; t < 128; t++ )
+        if ( tfr[ t ] != 0 )
+                tfr[ t + 128 ] = tfr[ t ] = ( tfr[ t ] > 0 )   ? 1 : -1;
+
+   int q;
+   int cp[4];
+   for ( q = 0; q < 4; q++ )
+          cp[ q ] = complexity( q );
+
+   if (  cp[0] + cp[1]  <= cp[2] + cp[3] ) {
+   	printf("\ncp: %d %d block : ",   cp[0] + cp[1], cp[2]+cp[3] );
+	return;
+   }
+
+   for( t =  0; t < 128; t++ )
+          f[ t ] = f[ t ] ^ ( ( t & 64) > 0 ) ;
+
+   assert( isnearbent( f ) );   
+
+   for( t =  0; t < 128; t++ )
+          tfr[ t ] = f[ t ] ? -1 : 1 ;
+
+   fast128( tfr );
+
+   for( t = 0; t < 128; t++ )
+        if ( tfr[ t ] != 0 )
+                tfr[ t + 128 ] = tfr[t] = ( tfr[ t ] > 0 )   ? 1 : -1;
+
+   for ( q = 0; q < 4; q++ )
+          cp[q] = complexity( q );
+
+   printf("\ncp: %d %d block : ",   cp[0] + cp[1], cp[2]+cp[3] );
 }
 
 int test( boole f )
 { 
-  int t;
-  for( t =  0; t < 128; t++ )
-	  sgn[ t ] = f[ t ] ? -1 : 1 ;
 
-  for( t =  0; t < 128; t++ )
-	  tfr[ t ] = f[ t ] ? -1 : 1 ;
-   Fourier( tfr, 128 );
-   for( t = 0; t < 128; t++ )
-	if ( tfr[ t ] != 0 ) 
-		tfr[ t + 128 ] = tfr[t] = ( tfr[ t ] > 0 )   ? 1 : -1;
+  
+    prepare( f ); 
+  
 
-     printf("\n");
-     int q; 
-   for ( q = 0; q < 4; q++ ) 
-   	lf[ q ] =  mkblock( q * 32 );
+   for ( int q = 0; q < 4; q++ ) 
+   	lf[ q ] =  mkblock( q );
 
-    glue64( 0,  lf[ 0 ], lf[ 1 ] ); 
-    freelist( lf[0] );
-    freelist( lf[1] );
-    list lg = result;
-    int nb = soluce;
-    mktable( lg, nb ); 
-    final( 64, lf[ 2 ], lf[ 3 ] ); 
-    printf("\nfinal=%d", soluce );
-    freetable( table, nb );
-    tdestroy( rootp, free );
+    soluce = 0;
+    	glue64(   lf[ 0 ], lf[ 1 ] ); 
+    	freelist( lf[0] );
+    	freelist( lf[1] );
 
-    freelist( lf[2]) ;
-    freelist( lf[3]) ;
-    //freelist( lg );
+    	list lg = result;
+    	
+	int nb = soluce;
+    	
+	mktable( lg, nb ); 
+    	
+	 final( lf[ 2 ], lf[ 3 ] ); 
+    	
+	 printf("\nfinal=%d", soluce );
+    	freetable( table, nb );
+    	tdestroy( rootp, free );
+	freelist( lf[2]) ;
+    	freelist( lf[3]) ;
+    
     return soluce > 0 ;
 }
 
@@ -398,28 +452,20 @@ int main(int argc, char *argv[])
 {
 
     boole f;
-    //FILE * src = fopen( "data/baby-1-6-6.dat", "r" );
-
     initboole( 7 );
     option(argc, argv);
-
-    
     int num = 0, count = 0;
-
-
-
     while ((f = loadBoole(src))) {
 		if (  job == num % mode) {
 		      assert( isnearbent( f ) == 1 ); 
-		      if ( test( f ) ) {
-			      count++;
+		      if (   test( f ) ) {
+			      panf( stdout, f ); 
 		      }
-    		      printf("\ncount=%d / %d\n", count, num );
 	}
 	free( f );
 	num++;
     }
-    printf("\ncount=%d / %d\n", count, num );
+    printf("\n#count=%d / %d\n", count, num );
    
     return 0;
 }
