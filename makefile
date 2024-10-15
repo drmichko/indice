@@ -12,7 +12,7 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : part.exe final.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
+all : bent.exe part.exe final.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
 	
 
 
@@ -24,7 +24,7 @@ rd.exe :  degrees.o space.o option.o rd.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 
-essai.exe :  degrees.o space.o option.o essai.c
+bent.exe :  degrees.o space.o option.o bent.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 final.exe :  degrees.o space.o option.o final.c

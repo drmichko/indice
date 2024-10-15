@@ -162,7 +162,6 @@ int subsize = 128;
 listspace lsp = NULL;
 
 
-int soluce;
 int accept32(  int v )
 {
 v = abs( v );
@@ -245,7 +244,7 @@ list  mkblock ( int q  )
 	  } else  left[t] = left[ t + 32 ] = tfr[ t + offset ]; 
   }
 
-  int soluce = 0;
+  int res  = 0;
   result = NULL;
   int i, p;
   for( p = 0; p < (1 << nbp) ; p++ ) {
@@ -261,10 +260,10 @@ list  mkblock ( int q  )
      		}
      	if ( admis64( left )  )  {
 			push32( left );
-			soluce++;
+			res++;
 		}
 	}
-   printf(" %d ( %d ) ", soluce, nbp  );
+   printf(" %d ( %d ) ", res , nbp  );
    return result;
 }
 
@@ -285,11 +284,11 @@ int check64( int offset, short int fct []  )
 
 
 
-void glue64( list ll, list lr)
+int  glue64( list ll, list lr)
 {
 list lx;
 short int fct[ 64 ];
-soluce = 0;
+int res  = 0;
 result = NULL;
 
 while ( ll ) {
@@ -302,13 +301,14 @@ while ( ll ) {
 			fct[t + 32 ] = lx->fct[t];
 		if ( admis64( fct )  && check64( 64 , fct) ) {
 			push64( fct );
-			soluce++;
+			res++;
 		}
 		lx = lx -> next;
 	}
 	ll = ll-> next;
 }
-printf("\nglue 64 : %d\n", soluce );
+printf("\nglue 64 : %d\n", res );
+return res;
 }
 
 int check128( short int fct []  )
@@ -346,13 +346,12 @@ short int t;
 }
 
 
-void final(  list ll, list lr)
+int  final(  list ll, list lr)
 {
 list lx;
 short int fct[64];
-soluce = 0;
 result = NULL;
-int trial = 0;
+int trial = 0, res = 0;
 while ( ll ) {
 	short int t;
 	for( t = 0; t < 32; t++ )
@@ -365,7 +364,7 @@ while ( ll ) {
 			 vector X = key( fct );
                          int val = findkey( X , &rootp );
 			 if ( val >= 0 ) {  
-				 soluce+=  glue128( table[val],  fct );
+				 res +=  glue128( table[val],  fct );
 				 trial++;
 			 }
 		}
@@ -373,7 +372,8 @@ while ( ll ) {
 	}
 	ll = ll-> next;
 }
-printf("\nglue 128 : %d (%d) \n", soluce, trial );
+printf("\nglue 128 : %d (%d) \n", res, trial );
+return res;
 }
 
 void prepare( boole f )
@@ -425,26 +425,25 @@ int test( boole f )
    for ( int q = 0; q < 4; q++ ) 
    	lf[ q ] =  mkblock( q );
 
-    soluce = 0;
-    	glue64(   lf[ 0 ], lf[ 1 ] ); 
+    int nb = glue64(   lf[ 0 ], lf[ 1 ] ); 
     	freelist( lf[0] );
     	freelist( lf[1] );
 
     	list lg = result;
     	
-	int nb = soluce;
+	
     	
 	mktable( lg, nb ); 
     	
-	 final( lf[ 2 ], lf[ 3 ] ); 
+	int res =  final( lf[ 2 ], lf[ 3 ] ); 
     	
-	 printf("\nfinal=%d", soluce );
+	printf("\nfinal=%d", res );
     	freetable( table, nb );
     	tdestroy( rootp, free );
 	freelist( lf[2]) ;
     	freelist( lf[3]) ;
     
-    return soluce > 0 ;
+    return res > 0 ;
 }
 
 
@@ -460,6 +459,7 @@ int main(int argc, char *argv[])
 		      assert( isnearbent( f ) == 1 ); 
 		      if (   test( f ) ) {
 			      panf( stdout, f ); 
+			      count++;
 		      }
 	}
 	free( f );
