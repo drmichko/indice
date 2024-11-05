@@ -15,13 +15,13 @@
 
 #include "fft.c"
 
-
-short int tfr[ 256 ];
+char tfr[ 256 ];
 
 typedef struct list {
-        short int * fct;
+        char*  fct;
         struct list * next;
 } enrlist, *list;
+
 
 list  lf[ 4 ] = {NULL}, result;
 
@@ -105,9 +105,9 @@ free( t) ;
 }
 
 
-vector  key( short int fct []  )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+vector  key( char fct []  )
+{ char f[ 256 ] = { 0 };
+  int t;
   vector X = 0;
   for( t = 0; t < 64; t++ )
 	  f[ t ] = fct[ t ];
@@ -134,22 +134,22 @@ while ( l ) {
 printf("\n#countp : %d", countp );
 }
 
-void push32( short int f[] )
+void push32( char f[] )
 { list aux;
   aux = malloc( sizeof(enrlist) );
-  aux->fct = calloc( 32, sizeof( short int ) ); 
-  short int t;
+  aux->fct = calloc( 32, sizeof( char ) ); 
+  int t;
   for( t = 0; t < 32; t++ )
   	aux->fct[t] = f[ t ];
   aux->next = result;
   result = aux;
 }
 
-void push64( short int f[] )
+void push64( char f[] )
 { list aux;
   aux = malloc( sizeof(enrlist) );
-  aux->fct = calloc( 64, sizeof( short int  ) );
-  short int t;
+  aux->fct = calloc( 64, sizeof( char ) );
+  int t;
   for( t = 0; t < 64; t++ )
         aux->fct[t] = f[ t ];
   aux->next = result;
@@ -175,9 +175,9 @@ v = abs( v );
 return  ( v == 0 ||  v == 8 || v == 16 );
 }
 
-int admis32( short int fct[] )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+int admis32( char fct[] )
+{ char f[ 256 ] = { 0 };
+  int t;
   for( t = 0; t < 32; t++ )
 	  f[ t ] = fct[ t ];
 
@@ -193,9 +193,9 @@ int admis32( short int fct[] )
 }
 
 
-int admis64( short int fct []  )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+int admis64( char fct []  )
+{ char f[ 256 ] = { 0 };
+  int t;
   for( t = 0; t < 64; t++ )
 	  f[ t ] = fct[ t ];
   fast64( f );
@@ -206,9 +206,9 @@ int admis64( short int fct []  )
   return 1;
 }
 
-int admis128( short int fct []  )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+int admis128( char fct []  )
+{ char f[ 256 ] = { 0 };
+  int t;
   for( t = 0; t < 128; t++ )
 	  f[ t ] = fct[ t ];
   fast128( f ) ;
@@ -221,7 +221,7 @@ int admis128( short int fct []  )
 
 int complexity ( int q  )
 { 
-  short int t;
+  int t;
   int nbp = 0;
   int offset = 32 * q;
   for( t = 0; t < 32 ; t++ ){
@@ -233,10 +233,10 @@ int complexity ( int q  )
 
 list  mkblock ( int q  )
 { 
-  short int t;
-  short int pos[ 32 ] ={ 0 };
+  int t;
+  int pos[ 32 ] ={ 0 };
   int nbp = 0;
-  short int left[ 64 ];
+  char left[ 64 ];
   int offset = 32 * q;
   for( t = 0; t < 32 ; t++ ){
 	  if ( tfr[ t + offset    ] == 0 ) {
@@ -267,9 +267,9 @@ list  mkblock ( int q  )
    return result;
 }
 
-int check64( int offset, short int fct []  )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+int check64( int offset, char fct []  )
+{ char f[ 256 ] = { 0 };
+  int t;
   for( t = 0; t < 64; t++ )
 	  if( tfr[ t + offset ] )  f[ t ] = fct[ t ];
           else f[ t ] = - fct[ t ];
@@ -287,7 +287,7 @@ int check64( int offset, short int fct []  )
 int  glue64( list ll, list lr)
 {
 list lx;
-short int fct[ 64 ];
+char fct[ 64 ];
 int res  = 0;
 result = NULL;
 
@@ -311,9 +311,9 @@ printf("\nglue 64 : %d\n", res );
 return res;
 }
 
-int check128( short int fct []  )
-{ short int f[ 256 ] = { 0 };
-  short int t;
+int check128( char fct []  )
+{ char f[ 256 ] = { 0 };
+  int t;
   for( t = 0; t < 128; t++ )
       f[ t ] = fct[ t ];
   for( t = 128; t < 256; t++ )
@@ -324,15 +324,24 @@ int check128( short int fct []  )
   for( t = 0; t < 256; t++ )
 	 if ( abs(  f[ t ] ) != 16 ) 
 		 return 0;
-	 
+  if ( optX ) return 1;
+  
+  initboole(8);
+  boole b = getboole( );
+  for( t = 0; t < 256; t++  )
+         	b[ t ] =  f[ t ] > 0;
+  pTT( stdout, b );
+  free( b );
+  initboole(7);
+  
   return 1;
 }
 
-int glue128( list ll,  short int right[] )
+int glue128( list ll,  char right[] )
 {
-short int fct[ 128 ];
+char fct[ 128 ];
 int res = 0;
-short int t;
+int t;
 	for( t = 0; t < 64 ; t++ )
                fct [t + 64 ] = right[ t ];
 
@@ -349,11 +358,11 @@ short int t;
 int  final(  list ll, list lr)
 {
 list lx;
-short int fct[64];
+char fct[64];
 result = NULL;
 int trial = 0, res = 0;
 while ( ll ) {
-	short int t;
+	int t;
 	for( t = 0; t < 32; t++ )
                         fct[t] = ll->fct[t];
 	lx = lr;
@@ -365,6 +374,8 @@ while ( ll ) {
                          int val = findkey( X , &rootp );
 			 if ( val >= 0 ) {  
 				 res +=  glue128( table[val],  fct );
+				 if ( optX && res > 0 ) 
+					 return 1;
 				 trial++;
 			 }
 		}
@@ -377,7 +388,7 @@ return res;
 }
 
 void prepare( boole f )
-{ short int t;
+{ int t;
   for( t =  0; t < 128; t++ )
           tfr[ t ] = f[ t ] ? -1 : 1 ;
    fast128( tfr );
@@ -458,7 +469,8 @@ int main(int argc, char *argv[])
 		if (  job == num % mode) {
 		      assert( isnearbent( f ) == 1 ); 
 		      if (   test( f ) ) {
-			      panf( stdout, f ); 
+			      if ( optX ) 
+				      panf( stdout, f ); 
 			      count++;
 		      }
 	}

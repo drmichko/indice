@@ -12,9 +12,11 @@ CFLAGS=$(OPTION) $(INCLUDE) $(BIBLIO)
 
 
 
-all : bent.exe part.exe final.exe sb.exe rd.exe sieve.exe normal.exe search.exe calc.exe hybride.exe
+all : sample.exe expand.exe rd.exe sieve.exe  search.exe calc.exe hybride.exe
 	
 
+sample.exe :  sample.c
+	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 sieve.exe :  degrees.o space.o option.o sieve.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
@@ -23,21 +25,7 @@ sieve.exe :  degrees.o space.o option.o sieve.c
 rd.exe :  degrees.o space.o option.o rd.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
-
-bent.exe :  degrees.o space.o option.o bent.c
-	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
-
-final.exe :  degrees.o space.o option.o final.c
-	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
-
-test.exe :  degrees.o space.o option.o test.c
-	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
-
-part.exe :  degrees.o space.o option.o part.c
-	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
-
-
-sb.exe :  degrees.o space.o option.o sb.c
+expand.exe :  degrees.o space.o option.o expand.c
 	gcc $(CFLAGS)  $^  -o $@  -lboole -lgmp
 
 normal.exe :  space.o option.o normal.c
